@@ -27,6 +27,14 @@
             </PendingDiffInfo>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/start.bat">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/start.bat" />
+              <option name="updatedContent" value="@echo off&#10;echo ====================================&#10;echo Music Library - Spring Boot App&#10;echo ====================================&#10;echo.&#10;echo Запуск приложения...&#10;echo Откройте браузер: http://localhost:8080&#10;echo.&#10;echo Для остановки нажмите Ctrl+C&#10;echo.&#10;&#10;cd /d &quot;%~dp0&quot;&#10;call mvnw.cmd spring-boot:run&#10;&#10;pause&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
       </map>
     </option>
   </component>
