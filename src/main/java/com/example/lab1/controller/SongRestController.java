@@ -1,81 +1,92 @@
 package com.example.lab1.controller;
 
+import com.example.lab1.model.Artist;
 import com.example.lab1.model.Song;
+import com.example.lab1.repository.ArtistRepository;
+import com.example.lab1.repository.SongRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/songs")
 public class SongRestController {
 
-    private static List<Song> songs = new ArrayList<>();
-    private static int nextId = 1;
+    private final SongRepository songRepository;
+    private final ArtistRepository artistRepository;
 
-    static {
-        songs.add(new Song(nextId++, "Bohemian Rhapsody", "Queen", "A Night at the Opera", 354, "Rock"));
-        songs.add(new Song(nextId++, "Imagine", "John Lennon", "Imagine", 183, "Pop"));
-        songs.add(new Song(nextId++, "Smells Like Teen Spirit", "Nirvana", "Nevermind", 301, "Grunge"));
-        songs.add(new Song(nextId++, "Billie Jean", "Michael Jackson", "Thriller", 294, "Pop"));
-        songs.add(new Song(nextId++, "Hotel California", "Eagles", "Hotel California", 391, "Rock"));
+    public SongRestController(SongRepository songRepository,
+                               ArtistRepository artistRepository) {
+        this.songRepository = songRepository;
+        this.artistRepository = artistRepository;
     }
 
     @GetMapping
-    public ResponseEntity<List<Song>> getAllSongs() {
+    public ResponseEntity<List<Song>> getAllSongs(
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) String album) {
+        List<Song> songs = songRepository.findAll();
+        if (genre != null) {
+            songs = songs.stream()
+                    .filter(s -> s.getGenre() != null && s.getGenre().toLowerCase().contains(genre.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+        if (album != null) {
+            songs = songs.stream()
+                    .filter(s -> s.getAlbum() != null && s.getAlbum().toLowerCase().contains(album.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
         return ResponseEntity.ok(songs);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Song> getSongById(@PathVariable int id) {
-        Optional<Song> song = songs.stream()
-                .filter(s -> s.getId() == id)
-                .findFirst();
-        return song.map(ResponseEntity::ok)
+    public ResponseEntity<Song> getSongById(@PathVariable Long id) {
+        return songRepository.findById(id)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<Song> addSong(@RequestBody Song song) {
-        song.setId(nextId++);
-        songs.add(song);
-        return ResponseEntity.status(HttpStatus.CREATED).body(song);
+        if (song.getArtist() != null && song.getArtist().getId() != null) {
+            Artist artist = artistRepository.findById(song.getArtist().getId())
+                    .orElse(null);
+            song.setArtist(artist);
+        }
+        Song saved = songRepository.save(song);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Song> updateSong(@PathVariable int id, @RequestBody Song updatedSong) {
-        Optional<Song> existingSong = songs.stream()
-                .filter(s -> s.getId() == id)
-                .findFirst();
-
-        if (existingSong.isPresent()) {
-            Song song = existingSong.get();
-            song.setTitle(updatedSong.getTitle());
-            song.setArtist(updatedSong.getArtist());
-            song.setAlbum(updatedSong.getAlbum());
-            song.setDuration(updatedSong.getDuration());
-            song.setGenre(updatedSong.getGenre());
-            return ResponseEntity.ok(song);
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Song> updateSong(@PathVariable Long id,
+                                            @RequestBody Song updated) {
+        return songRepository.findById(id).map(song -> {
+            song.setTitle(updated.getTitle());
+            song.setAlbum(updated.getAlbum());
+            song.setDuration(updated.getDuration());
+            song.setGenre(updated.getGenre());
+            if (updated.getArtist() != null && updated.getArtist().getId() != null) {
+                artistRepository.findById(updated.getArtist().getId())
+                        .ifPresent(song::setArtist);
+            }
+            return ResponseEntity.ok(songRepository.save(song));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSong(@PathVariable int id) {
-        boolean removed = songs.removeIf(s -> s.getId() == id);
-        if (removed) {
-            return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> deleteSong(@PathVariable Long id) {
+        if (!songRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+        songRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
-    public static List<Song> getAllSongsList() {
-        return new ArrayList<>(songs);
+    @GetMapping("/by-artist/{artistId}")
+    public ResponseEntity<List<Song>> getSongsByArtist(@PathVariable Long artistId) {
+        return ResponseEntity.ok(songRepository.findByArtistId(artistId));
     }
 }
-
-
-

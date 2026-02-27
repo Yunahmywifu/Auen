@@ -1,29 +1,44 @@
 package com.example.lab1.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "playlist")
 public class Playlist {
-    private int id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
     private String name;
+
     private String description;
     private String createdBy;
-    private List<Song> songs;
 
-    public Playlist() {
-        this.songs = new ArrayList<>();
-    }
 
-    public Playlist(int id, String name, String description, String createdBy) {
-        this.id = id;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "playlist_song",
+        joinColumns = @JoinColumn(name = "playlist_id"),
+        inverseJoinColumns = @JoinColumn(name = "song_id")
+    )
+    @JsonIgnoreProperties({"playlists"})
+    private List<Song> songs = new ArrayList<>();
+
+    public Playlist() {}
+
+    public Playlist(String name, String description, String createdBy) {
         this.name = name;
         this.description = description;
         this.createdBy = createdBy;
-        this.songs = new ArrayList<>();
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -41,6 +56,10 @@ public class Playlist {
         this.songs.add(song);
     }
 
+    public void removeSong(Long songId) {
+        this.songs.removeIf(s -> s.getId().equals(songId));
+    }
+
     public int getTotalDuration() {
         return songs.stream().mapToInt(Song::getDuration).sum();
     }
@@ -56,4 +75,3 @@ public class Playlist {
         return String.format("%d:%02d", minutes, seconds);
     }
 }
-
