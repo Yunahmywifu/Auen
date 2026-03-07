@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>🎵 Песни - Music Library</title>
@@ -168,7 +169,16 @@
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back-btn">← Вернуться на главную</a>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+            <a href="/" class="back-btn" style="margin-bottom:0;">← Вернуться на главную</a>
+            <div style="display:flex;align-items:center;gap:12px;color:white;font-size:14px;">
+                <span>👤 <strong sec:authentication="name">Пользователь</strong></span>
+                <form method="post" action="/logout" style="margin:0;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" style="background:rgba(255,255,255,0.2);color:white;border:2px solid rgba(255,255,255,0.5);padding:7px 15px;border-radius:20px;cursor:pointer;font-weight:600;font-size:13px;">🚪 Выйти</button>
+                </form>
+            </div>
+        </div>
 
         <div class="header">
             <h1>🎵 Мои песни</h1>
@@ -180,7 +190,7 @@
                 <div th:if="${songs != null and !songs.isEmpty()}">
                     <div th:each="song : ${songs}" class="song-card">
                         <div class="song-title">🎵 <span th:text="${song.title}"></span></div>
-                        <div class="song-info"><strong>Артист:</strong> <span th:text="${song.artist}"></span></div>
+                        <div class="song-info"><strong>Артист:</strong> <span th:text="${song.artist != null ? song.artist.name : '-'}"></span></div>
                         <div class="song-info"><strong>Альбом:</strong> <span th:text="${song.album}"></span></div>
                         <div class="song-info"><strong>Жанр:</strong> <span th:text="${song.genre}"></span></div>
                         <div class="song-info"><strong>Длительность:</strong> <span th:text="${song.formattedDuration}"></span></div>
@@ -199,13 +209,19 @@
             <div class="add-form">
                 <h2>➕ Добавить песню</h2>
                 <form method="post" th:action="@{/songs}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <div class="form-group">
                         <label for="title">Название песни:</label>
                         <input type="text" id="title" name="title" placeholder="Введите название" required>
                     </div>
                     <div class="form-group">
-                        <label for="artist">Артист:</label>
-                        <input type="text" id="artist" name="artist" placeholder="Имя артиста" required>
+                        <label for="artistId">Артист:</label>
+                        <select id="artistId" name="artistId" required>
+                            <option value="">Выберите артиста</option>
+                            <option th:each="artist : ${artists}"
+                                    th:value="${artist.id}"
+                                    th:text="${artist.name}"></option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="album">Альбом:</label>
@@ -222,7 +238,7 @@
                             <option value="Hip-Hop">Hip-Hop</option>
                             <option value="Electronic">Electronic</option>
                             <option value="Country">Country</option>
-                            <option value="R&B">R&B</option>
+                            <option value="R&amp;B">R&amp;B</option>
                             <option value="Blues">Blues</option>
                             <option value="Metal">Metal</option>
                         </select>

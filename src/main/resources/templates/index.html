@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>🎵 Music Library - Музыкальная библиотека</title>
@@ -98,6 +99,28 @@
             color: #666;
             font-size: 14px;
         }
+        .user-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 15px;
+        }
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.5);
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.35); }
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 36px;
@@ -114,6 +137,15 @@
 </head>
 <body>
     <div class="main-container">
+        <!-- Панель пользователя -->
+        <div class="user-bar">
+            <span>👤 <strong sec:authentication="name">Пользователь</strong></span>
+            <form method="post" action="/logout" style="margin:0;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn-logout">🚪 Выйти</button>
+            </form>
+        </div>
+
         <div class="header">
             <h1>🎵 Music Library</h1>
             <p>Ваша персональная музыкальная библиотека</p>

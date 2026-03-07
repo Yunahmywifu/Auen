@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>📋 Плейлисты - Music Library</title>
@@ -273,7 +274,16 @@
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back-btn">← Вернуться на главную</a>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+            <a href="/" class="back-btn" style="margin-bottom:0;">← Вернуться на главную</a>
+            <div style="display:flex;align-items:center;gap:12px;color:white;font-size:14px;">
+                <span>👤 <strong sec:authentication="name">Пользователь</strong></span>
+                <form method="post" action="/logout" style="margin:0;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" style="background:rgba(255,255,255,0.2);color:white;border:2px solid rgba(255,255,255,0.5);padding:7px 15px;border-radius:20px;cursor:pointer;font-weight:600;font-size:13px;">🚪 Выйти</button>
+                </form>
+            </div>
+        </div>
 
         <div class="header">
             <h1>📋 Плейлисты</h1>
@@ -310,7 +320,7 @@
                                 <div class="mini-song-content">
                                     <div class="mini-song-title">🎵 <span th:text="${song.title}"></span></div>
                                     <div class="mini-song-info">
-                                        <span th:text="${song.artist}"></span> • <span th:text="${song.formattedDuration}"></span>
+                                        <span th:text="${song.artist != null ? song.artist.name : '-'}"></span> • <span th:text="${song.formattedDuration}"></span>
                                     </div>
                                 </div>
                                 <a th:href="@{/playlists/removeSong(playlistId=${playlist.id},songId=${song.id})}"
@@ -324,12 +334,13 @@
                             <h5>➕ Добавить песню</h5>
                             <div th:if="${availableSongs != null and !availableSongs.isEmpty()}">
                                 <form class="add-song-form" method="post" th:action="@{/playlists/addSong}">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                     <input type="hidden" name="playlistId" th:value="${playlist.id}">
                                     <select name="songId" required>
                                         <option value="">Выберите песню...</option>
                                         <option th:each="song : ${availableSongs}"
                                                 th:value="${song.id}"
-                                                th:text="${song.title} + ' - ' + ${song.artist}"></option>
+                                                th:text="${song.title} + ' - ' + (${song.artist != null ? song.artist.name : 'Unknown'})"></option>
                                     </select>
                                     <button type="submit">Добавить</button>
                                 </form>
@@ -348,6 +359,7 @@
             <div class="add-form">
                 <h2>➕ Создать плейлист</h2>
                 <form method="post" th:action="@{/playlists}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <div class="form-group">
                         <label for="name">Название плейлиста:</label>
                         <input type="text" id="name" name="name" placeholder="Мой плейлист" required>
