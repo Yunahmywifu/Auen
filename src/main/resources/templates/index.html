@@ -1,196 +1,290 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <title>🎵 Music Library - Музыкальная библиотека</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 50px;
-            color: white;
-        }
-        .header h1 {
-            font-size: 48px;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        .header p {
-            font-size: 20px;
-            opacity: 0.9;
-        }
-        .student-info {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            text-align: center;
-        }
-        .student-info h2 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 28px;
-        }
-        .info-row {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        .info-item {
-            text-align: left;
-        }
-        .info-item strong {
-            color: #667eea;
-            font-size: 16px;
-        }
-        .info-item span {
-            color: #333;
-            font-size: 18px;
-            font-weight: 500;
-        }
-        .navigation {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-top: 40px;
-        }
-        .nav-card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            text-align: center;
-            text-decoration: none;
-            color: #333;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .nav-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
-        }
-        .nav-card .icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-        .nav-card h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 24px;
-        }
-        .nav-card p {
-            color: #666;
-            font-size: 14px;
-        }
-        .user-bar {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            color: white;
-            font-size: 15px;
-        }
-        .btn-logout {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.5);
-            padding: 8px 18px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-        .btn-logout:hover { background: rgba(255,255,255,0.35); }
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 36px;
-            }
-            .info-row {
-                flex-direction: column;
-                gap: 15px;
-            }
-            .info-item {
-                text-align: center;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUEN — Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1a0a2e;--bg2:#160824;--bg3:#0f051a;--panel:rgba(255,255,255,.05);--panel2:rgba(255,255,255,.08);--border:rgba(255,255,255,.08);--purple:#7c3aed;--violet:#a855f7;--pink:#ec4899;--teal:#2dd4bf;--lime:#a3e635;--white:#f8f4ff;--muted:rgba(248,244,255,.45);--muted2:rgba(248,244,255,.25);--accent:#c084fc;--glow:rgba(168,85,247,.3);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg3);color:var(--white);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");opacity:.5;}
+.mesh{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(124,58,237,.55) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 80% 10%,rgba(236,72,153,.35) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 60% 70%,rgba(45,212,191,.2) 0%,transparent 70%),radial-gradient(ellipse 70% 80% at 10% 80%,rgba(168,85,247,.3) 0%,transparent 70%),var(--bg3);}
+.layout{display:flex;min-height:100vh;position:relative;z-index:1;}
+.sidebar{width:260px;flex-shrink:0;background:rgba(15,5,26,.8);backdrop-filter:blur(20px);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:32px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.logo{padding:0 28px 32px;border-bottom:1px solid var(--border);margin-bottom:24px;}
+.logo-mark{display:flex;align-items:center;gap:10px;}
+.logo-bars{display:flex;align-items:flex-end;gap:3px;height:28px;}
+.logo-bars span{width:4px;background:var(--accent);border-radius:2px;display:block;}
+.lb1{height:14px;}.lb2{height:22px;}.lb3{height:28px;}.lb4{height:20px;}.lb5{height:16px;}.lb6{height:24px;}
+@keyframes bar-pulse{0%,100%{transform:scaleY(1);}50%{transform:scaleY(.5);}}
+.logo-bars span:nth-child(1){animation:bar-pulse 1.2s .0s ease-in-out infinite;}
+.logo-bars span:nth-child(2){animation:bar-pulse 1.2s .15s ease-in-out infinite;}
+.logo-bars span:nth-child(3){animation:bar-pulse 1.2s .3s ease-in-out infinite;}
+.logo-bars span:nth-child(4){animation:bar-pulse 1.2s .45s ease-in-out infinite;}
+.logo-bars span:nth-child(5){animation:bar-pulse 1.2s .6s ease-in-out infinite;}
+.logo-bars span:nth-child(6){animation:bar-pulse 1.2s .75s ease-in-out infinite;}
+.logo-text{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;color:var(--white);}
+.nav-section{padding:0 16px;margin-bottom:8px;}
+.nav-label{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--muted2);text-transform:uppercase;padding:8px 12px;margin-bottom:4px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--muted);font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;margin-bottom:2px;border:1px solid transparent;}
+.nav-item:hover{background:var(--panel);color:var(--white);}
+.nav-item.active{background:linear-gradient(135deg,rgba(168,85,247,.25),rgba(124,58,237,.15));color:var(--accent);border-color:rgba(168,85,247,.25);}
+.nav-item svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;flex-shrink:0;}
+.nav-item .badge{margin-left:auto;background:var(--accent);color:var(--bg3);font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px;}
+.sidebar-bottom{margin-top:auto;padding:20px 16px 0;border-top:1px solid var(--border);}
+.user-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--border);}
+.user-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;}
+.user-info{flex:1;min-width:0;}
+.user-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-role{font-size:11px;color:var(--muted);margin-top:1px;}
+.logout-btn{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:all .2s;text-decoration:none;display:block;text-align:center;margin-top:8px;}
+.logout-btn:hover{background:rgba(239,68,68,.15);color:#f87171;}
+.main{flex:1;overflow-y:auto;min-width:0;}
+.topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:rgba(15,5,26,.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);gap:20px;}
+.topbar-left{min-width:0;}
+.greeting{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:2px;}
+.topbar-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;}
+.page-content{padding:36px 40px 120px;}
+.hero{margin-bottom:48px;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,7vw,88px);line-height:.95;letter-spacing:2px;margin-bottom:12px;}
+.hero-title .line1,.hero-title .line2{display:block;}
+.hero-title .line3{display:block;-webkit-text-stroke:2px var(--accent);color:transparent;}
+.sparkle{display:inline-block;color:var(--accent);margin-left:8px;animation:sparkle-spin 3s ease-in-out infinite;}
+@keyframes sparkle-spin{0%,100%{transform:scale(1) rotate(0deg);}50%{transform:scale(1.2) rotate(20deg);}}
+.hero-sub{font-size:16px;color:var(--muted);font-weight:500;max-width:420px;}
+.hero-stats{display:flex;gap:32px;margin-top:28px;}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.stat-lbl{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.section-title{font-size:18px;font-weight:700;letter-spacing:-.3px;}
+.section-link{font-size:13px;color:var(--accent);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;text-decoration:none;}
+.section-link:hover{color:var(--violet);}
+.artists-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:48px;}
+.artist-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px 16px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.artist-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--glow),transparent);opacity:0;transition:opacity .25s;}
+.artist-card:hover{transform:translateY(-4px);border-color:rgba(168,85,247,.4);}
+.artist-card:hover::before{opacity:1;}
+.artist-img{width:80px;height:80px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;z-index:1;box-shadow:0 8px 24px rgba(124,58,237,.4);}
+.artist-name{font-size:14px;font-weight:700;text-align:center;position:relative;z-index:1;margin-bottom:4px;}
+.artist-genre{font-size:12px;color:var(--muted);text-align:center;position:relative;z-index:1;}
+.artist-card .num{position:absolute;top:10px;right:12px;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted2);font-family:'DM Sans',monospace;}
+.tracks-table-head{display:grid;grid-template-columns:40px 1fr 180px 160px 80px 40px;gap:12px;padding:8px 16px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+.th{font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:2px;text-transform:uppercase;}
+.th.center{text-align:center;}.th.right{text-align:right;}
+.track-row{display:grid;grid-template-columns:40px 1fr 180px 160px 80px 40px;gap:12px;padding:12px 16px;border-radius:12px;align-items:center;cursor:pointer;transition:background .15s;border:1px solid transparent;margin-bottom:4px;}
+.track-row:hover{background:var(--panel);border-color:var(--border);}
+.track-row.playing{background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(236,72,153,.08));border-color:rgba(168,85,247,.25);}
+.track-num{font-size:13px;color:var(--muted);font-weight:600;text-align:center;font-family:'DM Sans',monospace;}
+.track-row.playing .track-num{color:var(--accent);}
+.track-info{display:flex;align-items:center;gap:12px;min-width:0;}
+.track-thumb{width:42px;height:42px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.t1{background:linear-gradient(135deg,#7c3aed,#ec4899);}.t2{background:linear-gradient(135deg,#0ea5e9,#2dd4bf);}.t3{background:linear-gradient(135deg,#f59e0b,#ef4444);}.t4{background:linear-gradient(135deg,#10b981,#06b6d4);}.t5{background:linear-gradient(135deg,#8b5cf6,#ec4899);}
+.track-title{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.track-artist{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.track-row.playing .track-title{color:var(--accent);}
+.track-album{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.track-genre{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;text-align:center;width:fit-content;letter-spacing:.3px;}
+.tg-rb{background:rgba(124,58,237,.2);color:#c084fc;border:1px solid rgba(124,58,237,.3);}
+.tg-pop{background:rgba(236,72,153,.2);color:#f472b6;border:1px solid rgba(236,72,153,.3);}
+.tg-hip{background:rgba(45,212,191,.2);color:#5eead4;border:1px solid rgba(45,212,191,.3);}
+.tg-ele{background:rgba(163,230,53,.2);color:#bef264;border:1px solid rgba(163,230,53,.3);}
+.tg-jaz{background:rgba(251,146,60,.2);color:#fb923c;border:1px solid rgba(251,146,60,.3);}
+.track-dur{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;font-family:'DM Sans',monospace;}
+.btn-del{width:30px;height:30px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0;text-decoration:none;}
+.btn-del:hover{background:rgba(239,68,68,.25);}
+.btn-del svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;}
+.quick-add{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:36px;position:relative;overflow:hidden;}
+.quick-add::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.2),transparent 70%);}
+.qa-title{font-size:17px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.qa-title span{color:var(--accent);}
+.qa-form{display:flex;flex-wrap:wrap;gap:12px;}
+.qa-input{flex:1;min-width:140px;padding:11px 16px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.qa-input::placeholder{color:var(--muted2);}
+.qa-input:focus{border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.08);}
+.qa-select{flex:1;min-width:120px;padding:11px 16px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:14px;outline:none;appearance:none;cursor:pointer;}
+.qa-select option{background:#1a0a2e;}
+.qa-btn{padding:11px 28px;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:12px;color:white;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;white-space:nowrap;}
+.qa-btn:hover{opacity:.9;transform:translateY(-1px);}
+.empty-state{text-align:center;padding:80px 40px;background:var(--panel);border:1px solid var(--border);border-radius:20px;}
+.empty-state .emoji{font-size:48px;margin-bottom:16px;}
+.empty-state h3{font-size:20px;font-weight:700;margin-bottom:8px;}
+.empty-state p{color:var(--muted);font-size:14px;}
+.now-playing{position:fixed;bottom:0;left:260px;right:0;z-index:200;background:rgba(15,5,26,.92);backdrop-filter:blur(30px);border-top:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;gap:24px;}
+.np-track{display:flex;align-items:center;gap:14px;width:260px;flex-shrink:0;}
+.np-thumb{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(168,85,247,.4);}
+.np-title{font-size:14px;font-weight:700;}
+.np-artist{font-size:12px;color:var(--muted);margin-top:2px;}
+.np-controls{flex:1;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.np-buttons{display:flex;align-items:center;gap:16px;}
+.np-btn{background:none;border:none;cursor:pointer;color:var(--muted);transition:color .15s;display:flex;align-items:center;justify-content:center;}
+.np-btn:hover{color:var(--white);}
+.np-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;}
+.np-btn.play{width:44px;height:44px;border-radius:50%;background:var(--accent);color:var(--bg3);}
+.np-btn.play:hover{background:var(--violet);color:var(--white);}
+.np-btn.play svg{fill:currentColor;stroke:none;}
+.np-progress{width:100%;display:flex;align-items:center;gap:10px;}
+.np-time{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;font-family:'DM Sans',monospace;width:32px;}
+.np-bar{flex:1;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;cursor:pointer;}
+.np-fill{height:100%;width:35%;background:linear-gradient(90deg,var(--accent),var(--violet));border-radius:2px;transition:width .3s;}
+.np-vol{display:flex;align-items:center;gap:8px;width:160px;justify-content:flex-end;}
+.np-vol svg{width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2;}
+.vol-bar{width:80px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;cursor:pointer;}
+.vol-fill{height:100%;width:70%;background:var(--accent);border-radius:2px;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(168,85,247,.3);border-radius:3px;}::-webkit-scrollbar-thumb:hover{background:rgba(168,85,247,.5);}
+@media(max-width:1100px){.tracks-table-head,.track-row{grid-template-columns:36px 1fr 140px 80px 40px;}.th:nth-child(4),.track-album:nth-child(3){display:none;}}
+@media(max-width:800px){.sidebar{width:70px;padding:20px 0;}.logo-text,.nav-item span,.user-info,.nav-label{display:none;}.nav-item{justify-content:center;padding:12px;}.now-playing{left:70px;}.topbar,.page-content{padding-left:24px;padding-right:24px;}}
+</style>
 </head>
 <body>
-    <div class="main-container">
-        <!-- Панель пользователя -->
-        <div class="user-bar">
-            <span>👤 <strong sec:authentication="name">Пользователь</strong></span>
-            <form method="post" action="/logout" style="margin:0;">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button type="submit" class="btn-logout">🚪 Выйти</button>
-            </form>
-        </div>
-
-        <div class="header">
-            <h1>🎵 Music Library</h1>
-            <p>Ваша персональная музыкальная библиотека</p>
-        </div>
-
-        <!-- Информация о студенте -->
-        <div class="student-info">
-            <h2>📚 Информация о проекте</h2>
-            <div class="info-row">
-                <div class="info-item">
-                    <strong>👤 Студент:</strong><br>
-                    <span>Введите ваше имя</span>
-                </div>
-                <div class="info-item">
-                    <strong>👥 Группа:</strong><br>
-                    <span>Введите вашу группу</span>
-                </div>
-                <div class="info-item">
-                    <strong>📅 Дата:</strong><br>
-                    <span th:text="${#temporals.format(#temporals.createNow(), 'dd.MM.yyyy')}"></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Навигация по разделам библиотеки -->
-        <div class="navigation">
-            <a href="/songs" class="nav-card">
-                <div class="icon">🎵</div>
-                <h3>Песни</h3>
-                <p>Управление вашей коллекцией песен</p>
-            </a>
-
-            <a href="/artists" class="nav-card">
-                <div class="icon">🎤</div>
-                <h3>Артисты</h3>
-                <p>Ваши любимые исполнители</p>
-            </a>
-
-            <a href="/playlists" class="nav-card">
-                <div class="icon">📋</div>
-                <h3>Плейлисты</h3>
-                <p>Создавайте свои плейлисты</p>
-            </a>
-        </div>
+<div class="mesh"></div>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <div class="logo-bars"><span class="lb1"></span><span class="lb2"></span><span class="lb3"></span><span class="lb4"></span><span class="lb5"></span><span class="lb6"></span></div>
+        <span class="logo-text">AUEN</span>
+      </div>
     </div>
+    <div class="nav-section">
+      <div class="nav-label">Main</div>
+      <a href="/index" class="nav-item active">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </a>
+      <a href="/songs" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        <span>Songs</span>
+      </a>
+      <a href="/artists" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Artists</span>
+      </a>
+      <a href="/playlists" class="nav-item">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>Playlists</span>
+      </a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar" sec:authentication="name" th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</div>
+        <div class="user-info">
+          <div class="user-name" th:text="${currentUser != null and currentUser.fullName != null ? currentUser.fullName : #authentication.name}">User</div>
+          <div class="user-role" th:text="${currentUser != null and currentUser.groupName != null ? currentUser.groupName : 'Music Fan'}">Music Fan</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post" style="margin-top:8px">
+        <button type="submit" class="logout-btn" style="width:100%">Sign out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="greeting">Welcome back! 🎵</div>
+        <div class="topbar-name" sec:authentication="name">USER</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="hero">
+        <div class="hero-title">
+          <span class="line1">What Will You</span>
+          <span class="line2">Listen</span>
+          <span class="line3">Today?<span class="sparkle">✦</span></span>
+        </div>
+        <div class="hero-sub">Your personal music archive — discover, collect, and vibe.</div>
+        <div class="hero-stats">
+          <div class="stat-item"><div class="stat-val" th:text="${songCount}">0</div><div class="stat-lbl">Tracks</div></div>
+          <div class="stat-item"><div class="stat-val" th:text="${artistCount}">0</div><div class="stat-lbl">Artists</div></div>
+          <div class="stat-item"><div class="stat-val" th:text="${playlistCount}">0</div><div class="stat-lbl">Playlists</div></div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">Discover Your Favorite Artist</div>
+        <a href="/artists" class="section-link">See all →</a>
+      </div>
+      <div class="artists-grid">
+        <div class="empty-state" style="grid-column:1/-1" th:if="${#lists.isEmpty(artists)}">
+          <div class="emoji">🎤</div><h3>No artists yet</h3>
+          <p>Go to <a href="/artists" style="color:var(--accent)">Artists</a> to add some!</p>
+        </div>
+        <div class="artist-card" th:each="artist, stat : ${artists}">
+          <div class="num" th:text="'A·' + ${stat.count < 10 ? '00' + stat.count : (stat.count < 100 ? '0' + stat.count : stat.count)}">A·001</div>
+          <div class="artist-img">🎤</div>
+          <div class="artist-name" th:text="${artist.name}">Artist</div>
+          <div class="artist-genre" th:text="${(artist.genre != null ? artist.genre : '—') + ' · ' + (artist.country != null ? artist.country : '—')}">Genre</div>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top:12px">
+        <div class="section-title">Recently Added Tracks</div>
+        <a href="/songs" class="section-link">See all →</a>
+      </div>
+      <div class="empty-state" th:if="${#lists.isEmpty(songs)}">
+        <div class="emoji">🎵</div><h3>No songs yet</h3>
+        <p>Go to <a href="/songs" style="color:var(--accent)">Songs</a> to add some!</p>
+      </div>
+      <th:block th:unless="${#lists.isEmpty(songs)}">
+        <div class="tracks-table-head">
+          <div class="th center">#</div><div class="th">Title</div><div class="th">Artist</div>
+          <div class="th">Album</div><div class="th">Genre</div><div class="th right">Dur.</div>
+        </div>
+        <div th:each="song, stat : ${songs}"
+             th:class="${stat.index == 0 ? 'track-row playing' : 'track-row'}">
+          <div class="track-num" th:text="${stat.index == 0 ? '▶' : stat.count}">1</div>
+          <div class="track-info">
+            <div th:class="'track-thumb t' + ${(stat.index % 5) + 1}">🎵</div>
+            <div>
+              <div class="track-title" th:text="${song.title}">Title</div>
+              <div class="track-artist" th:text="${song.artist != null ? song.artist.name : '—'}">Artist</div>
+            </div>
+          </div>
+          <div class="track-album" th:text="${song.artist != null ? song.artist.name : '—'}">Artist</div>
+          <div class="track-album" th:text="${song.album != null ? song.album : '—'}">Album</div>
+          <div th:with="g=${song.genre != null ? song.genre.toLowerCase() : ''}"
+               th:class="${'track-genre ' + (g.contains('rb') or g.contains('rnb') ? 'tg-rb' : g.contains('pop') ? 'tg-pop' : g.contains('hip') ? 'tg-hip' : g.contains('ele') ? 'tg-ele' : 'tg-jaz')}"
+               th:text="${song.genre != null ? song.genre : '—'}">Genre</div>
+          <div class="track-dur" th:text="${song.formattedDuration}">0:00</div>
+        </div>
+      </th:block>
+    </div>
+  </div>
+</div>
+
+<!-- NOW PLAYING -->
+<div class="now-playing">
+  <div class="np-track">
+    <div class="np-thumb">🎵</div>
+    <div class="np-info"><div class="np-title" id="np-title">AUEN MUSIC</div><div class="np-artist" id="np-artist">Select a track</div></div>
+  </div>
+  <div class="np-controls">
+    <div class="np-buttons">
+      <button class="np-btn"><svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+      <button class="np-btn play" onclick="togglePlay(this)"><svg viewBox="0 0 24 24" id="play-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+      <button class="np-btn"><svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+    </div>
+    <div class="np-progress">
+      <span class="np-time">0:00</span>
+      <div class="np-bar"><div class="np-fill" id="np-fill" style="width:0%"></div></div>
+      <span class="np-time" style="text-align:right">0:00</span>
+    </div>
+  </div>
+  <div class="np-vol">
+    <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+    <div class="vol-bar"><div class="vol-fill"></div></div>
+  </div>
+</div>
+<script>
+let isPlaying=false,progressInterval,progress=0;
+function togglePlay(btn){isPlaying=!isPlaying;const icon=document.getElementById('play-icon');if(isPlaying){icon.innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';progressInterval=setInterval(advanceProgress,300);}else{icon.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';clearInterval(progressInterval);}}
+function advanceProgress(){progress=Math.min(100,progress+.3);document.getElementById('np-fill').style.width=progress+'%';if(progress>=100){clearInterval(progressInterval);isPlaying=false;progress=0;}}
+</script>
 </body>
 </html>
-

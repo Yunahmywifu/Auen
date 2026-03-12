@@ -8,6 +8,8 @@ import com.example.lab1.repository.ArtistRepository;
 import com.example.lab1.repository.PlaylistRepository;
 import com.example.lab1.repository.SongRepository;
 import com.example.lab1.repository.UserRepository;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,6 +36,13 @@ public class AuthController {
         this.playlistRepository = playlistRepository;
     }
 
+    // Вспомогательный метод — добавляет currentUser в модель
+    private void addCurrentUser(Model model, UserDetails userDetails) {
+        if (userDetails != null) {
+            userRepository.findByUsername(userDetails.getUsername())
+                .ifPresent(u -> model.addAttribute("currentUser", u));
+        }
+    }
 
     @GetMapping("/login")
     public String loginPage() { return "login"; }
@@ -44,6 +53,8 @@ public class AuthController {
     @PostMapping("/register")
     public String registerUser(@RequestParam String username,
                                 @RequestParam String password,
+                                @RequestParam(required = false) String fullName,
+                                @RequestParam(required = false) String groupName,
                                 Model model) {
         if (userRepository.existsByUsername(username)) {
             model.addAttribute("error", "Пользователь с таким именем уже существует!");
@@ -53,34 +64,48 @@ public class AuthController {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole("USER");
+        if (fullName != null && !fullName.isBlank()) user.setFullName(fullName.trim());
+        if (groupName != null && !groupName.isBlank()) user.setGroupName(groupName.trim());
         userRepository.save(user);
         return "redirect:/login?registered";
     }
 
+    @GetMapping("/")
+    public String rootRedirect() { return "redirect:/index"; }
 
-    @GetMapping({"/", "/index"})
-    public String indexPage() { return "index"; }
+    @GetMapping("/index")
+    public String indexPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        model.addAttribute("songCount", songRepository.count());
+        model.addAttribute("artistCount", artistRepository.count());
+        model.addAttribute("playlistCount", playlistRepository.count());
+        model.addAttribute("artists", artistRepository.findAll());
+        model.addAttribute("songs", songRepository.findAll());
+        addCurrentUser(model, userDetails);
+        return "index";
+    }
 
     @GetMapping("/artists")
-    public String artistsPage(Model model) {
+    public String artistsPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         model.addAttribute("artists", artistRepository.findAll());
+        addCurrentUser(model, userDetails);
         return "artists";
     }
 
     @GetMapping("/songs")
-    public String songsPage(Model model) {
+    public String songsPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         model.addAttribute("songs", songRepository.findAll());
         model.addAttribute("artists", artistRepository.findAll());
+        addCurrentUser(model, userDetails);
         return "songs";
     }
 
     @GetMapping("/playlists")
-    public String playlistsPage(Model model) {
+    public String playlistsPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         model.addAttribute("playlists", playlistRepository.findAll());
         model.addAttribute("availableSongs", songRepository.findAll());
+        addCurrentUser(model, userDetails);
         return "playlists";
     }
-
 
     @PostMapping("/artists")
     public String addArtist(@RequestParam String name,
@@ -96,7 +121,6 @@ public class AuthController {
         artistRepository.deleteById(id);
         return "redirect:/artists";
     }
-
 
     @PostMapping("/songs")
     public String addSong(@RequestParam String title,
@@ -121,7 +145,6 @@ public class AuthController {
         songRepository.deleteById(id);
         return "redirect:/songs";
     }
-
 
     @PostMapping("/playlists")
     public String addPlaylist(@RequestParam String name,

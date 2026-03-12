@@ -19,6 +19,10 @@ public class User {
     @Column(nullable = false)
     private String role = "USER";
 
+    private String fullName;
+
+    private String groupName;
+
     public User() {}
 
     public User(String username, String password, String role) {
@@ -38,5 +42,10 @@ public class User {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
-}
 
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getGroupName() { return groupName; }
+    public void setGroupName(String groupName) { this.groupName = groupName; }
+}

@@ -1,257 +1,553 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <title>🎵 Песни - Music Library</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-        }
-        .header h1 {
-            font-size: 42px;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        .back-btn {
-            display: inline-block;
-            padding: 12px 24px;
-            background: white;
-            color: #667eea;
-            text-decoration: none;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            font-weight: 600;
-            transition: transform 0.2s;
-        }
-        .back-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .content-wrapper {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 30px;
-        }
-        .songs-list {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-        .songs-list h2 {
-            color: #667eea;
-            margin-bottom: 25px;
-            font-size: 28px;
-        }
-        .song-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-            transition: transform 0.2s;
-        }
-        .song-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .song-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        .song-info {
-            color: #666;
-            font-size: 14px;
-            margin: 4px 0;
-        }
-        .song-info strong {
-            color: #667eea;
-        }
-        .song-actions {
-            margin-top: 10px;
-        }
-        .delete-btn {
-            padding: 6px 16px;
-            background: #dc3545;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-        .delete-btn:hover {
-            background: #c82333;
-        }
-        .add-form {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            position: sticky;
-            top: 20px;
-        }
-        .add-form h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .submit-btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-        @media (max-width: 1024px) {
-            .content-wrapper {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUEN — Songs</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1a0a2e;--bg2:#160824;--bg3:#0f051a;--panel:rgba(255,255,255,.05);--panel2:rgba(255,255,255,.08);--border:rgba(255,255,255,.08);--purple:#7c3aed;--violet:#a855f7;--pink:#ec4899;--teal:#2dd4bf;--lime:#a3e635;--white:#f8f4ff;--muted:rgba(248,244,255,.45);--muted2:rgba(248,244,255,.25);--accent:#c084fc;--glow:rgba(168,85,247,.3);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg3);color:var(--white);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");opacity:.5;}
+.mesh{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(124,58,237,.55) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 80% 10%,rgba(236,72,153,.35) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 60% 70%,rgba(45,212,191,.2) 0%,transparent 70%),radial-gradient(ellipse 70% 80% at 10% 80%,rgba(168,85,247,.3) 0%,transparent 70%),var(--bg3);}
+.layout{display:flex;min-height:100vh;position:relative;z-index:1;}
+.sidebar{width:260px;flex-shrink:0;background:rgba(15,5,26,.8);backdrop-filter:blur(20px);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:32px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.logo{padding:0 28px 32px;border-bottom:1px solid var(--border);margin-bottom:24px;}
+.logo-mark{display:flex;align-items:center;gap:10px;}
+.logo-bars{display:flex;align-items:flex-end;gap:3px;height:28px;}
+.logo-bars span{width:4px;background:var(--accent);border-radius:2px;display:block;}
+.lb1{height:14px;}.lb2{height:22px;}.lb3{height:28px;}.lb4{height:20px;}.lb5{height:16px;}.lb6{height:24px;}
+@keyframes bar-pulse{0%,100%{transform:scaleY(1);}50%{transform:scaleY(.5);}}
+.logo-bars span:nth-child(1){animation:bar-pulse 1.2s .0s ease-in-out infinite;}
+.logo-bars span:nth-child(2){animation:bar-pulse 1.2s .15s ease-in-out infinite;}
+.logo-bars span:nth-child(3){animation:bar-pulse 1.2s .3s ease-in-out infinite;}
+.logo-bars span:nth-child(4){animation:bar-pulse 1.2s .45s ease-in-out infinite;}
+.logo-bars span:nth-child(5){animation:bar-pulse 1.2s .6s ease-in-out infinite;}
+.logo-bars span:nth-child(6){animation:bar-pulse 1.2s .75s ease-in-out infinite;}
+.logo-text{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;color:var(--white);}
+.nav-section{padding:0 16px;margin-bottom:8px;}
+.nav-label{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--muted2);text-transform:uppercase;padding:8px 12px;margin-bottom:4px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--muted);font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;margin-bottom:2px;border:1px solid transparent;}
+.nav-item:hover{background:var(--panel);color:var(--white);}
+.nav-item.active{background:linear-gradient(135deg,rgba(168,85,247,.25),rgba(124,58,237,.15));color:var(--accent);border-color:rgba(168,85,247,.25);}
+.nav-item svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;flex-shrink:0;}
+.sidebar-bottom{margin-top:auto;padding:20px 16px 0;border-top:1px solid var(--border);}
+.user-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--border);}
+.user-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;}
+.user-info{flex:1;min-width:0;}
+.user-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-role{font-size:11px;color:var(--muted);margin-top:1px;}
+.logout-btn{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:all .2s;width:100%;text-align:center;margin-top:8px;}
+.logout-btn:hover{background:rgba(239,68,68,.15);color:#f87171;}
+.main{flex:1;overflow-y:auto;min-width:0;}
+.topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:rgba(15,5,26,.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);gap:20px;}
+.topbar-left{min-width:0;}
+.greeting{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:2px;}
+.topbar-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;}
+.page-content{padding:36px 40px 120px;}
+.hero{margin-bottom:32px;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:.95;letter-spacing:2px;margin-bottom:12px;}
+.hero-title .line1{display:block;}
+.hero-title .line3{display:block;-webkit-text-stroke:2px var(--accent);color:transparent;}
+.sparkle{display:inline-block;color:var(--accent);margin-left:8px;animation:sparkle-spin 3s ease-in-out infinite;}
+@keyframes sparkle-spin{0%,100%{transform:scale(1) rotate(0deg);}50%{transform:scale(1.2) rotate(20deg);}}
+.tracks-table-head{display:grid;grid-template-columns:40px 1fr 180px 160px 80px 60px 40px;gap:12px;padding:8px 16px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+.th{font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:2px;text-transform:uppercase;}
+.th.center{text-align:center;}.th.right{text-align:right;}
+.track-row{display:grid;grid-template-columns:40px 1fr 180px 160px 80px 60px 40px;gap:12px;padding:12px 16px;border-radius:12px;align-items:center;cursor:pointer;transition:background .15s;border:1px solid transparent;margin-bottom:4px;}
+.track-row:hover{background:var(--panel);border-color:var(--border);}
+.track-row.playing{background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(236,72,153,.08));border-color:rgba(168,85,247,.25);}
+.track-num{font-size:13px;color:var(--muted);font-weight:600;text-align:center;font-family:'DM Sans',monospace;}
+.track-row.playing .track-num{color:var(--accent);}
+.track-info{display:flex;align-items:center;gap:12px;min-width:0;}
+.track-thumb{width:42px;height:42px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.t1{background:linear-gradient(135deg,#7c3aed,#ec4899);}.t2{background:linear-gradient(135deg,#0ea5e9,#2dd4bf);}.t3{background:linear-gradient(135deg,#f59e0b,#ef4444);}.t4{background:linear-gradient(135deg,#10b981,#06b6d4);}.t5{background:linear-gradient(135deg,#8b5cf6,#ec4899);}
+.track-title{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.track-artist{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.track-row.playing .track-title{color:var(--accent);}
+.track-album{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.track-genre{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;text-align:center;width:fit-content;letter-spacing:.3px;}
+.tg-rb{background:rgba(124,58,237,.2);color:#c084fc;border:1px solid rgba(124,58,237,.3);}
+.tg-pop{background:rgba(236,72,153,.2);color:#f472b6;border:1px solid rgba(236,72,153,.3);}
+.tg-hip{background:rgba(45,212,191,.2);color:#5eead4;border:1px solid rgba(45,212,191,.3);}
+.tg-ele{background:rgba(163,230,53,.2);color:#bef264;border:1px solid rgba(163,230,53,.3);}
+.tg-jaz{background:rgba(251,146,60,.2);color:#fb923c;border:1px solid rgba(251,146,60,.3);}
+.track-dur{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;font-family:'DM Sans',monospace;}
+.track-actions{display:flex;justify-content:flex-end;}
+.btn-del{width:30px;height:30px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;text-decoration:none;}
+.btn-del:hover{background:rgba(239,68,68,.25);}
+.btn-del svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;}
+.quick-add{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:36px;position:relative;overflow:hidden;}
+.quick-add::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.2),transparent 70%);}
+.qa-title{font-size:17px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.qa-title span{color:var(--accent);}
+.qa-form{display:flex;flex-wrap:wrap;gap:12px;}
+.qa-input{flex:1;min-width:140px;padding:11px 16px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.qa-input::placeholder{color:var(--muted2);}
+.qa-input:focus{border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.08);}
+.qa-select{flex:1;min-width:120px;padding:11px 16px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:14px;outline:none;appearance:none;cursor:pointer;}
+.qa-select option{background:#1a0a2e;}
+.qa-btn{padding:11px 28px;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:12px;color:white;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;white-space:nowrap;}
+.qa-btn:hover{opacity:.9;transform:translateY(-1px);}
+.spotify-search{background:rgba(30,215,96,.06);border:1px solid rgba(30,215,96,.2);border-radius:20px;padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden;}
+.spotify-search::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(30,215,96,.15),transparent 70%);}
+.sp-title{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:#1ed760;}
+.sp-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.sp-input{flex:1;min-width:200px;padding:10px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(30,215,96,.25);border-radius:12px;color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.sp-input:focus{border-color:rgba(30,215,96,.6);}
+.sp-input::placeholder{color:var(--muted2);}
+.sp-btn{padding:10px 20px;background:linear-gradient(135deg,#1ed760,#1aa34a);border:none;border-radius:12px;color:#000;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s;}
+.sp-btn:hover{opacity:.85;}
+.sp-results{margin-top:14px;display:none;}
+.sp-results.visible{display:block;}
+.sp-result-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background .15s;border:1px solid transparent;}
+.sp-result-item:hover{background:rgba(30,215,96,.1);border-color:rgba(30,215,96,.25);}
+.sp-cover{width:44px;height:44px;border-radius:8px;object-fit:cover;background:rgba(255,255,255,.1);flex-shrink:0;}
+.sp-cover-placeholder{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#1a0a2e,#3d1e6b);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.sp-item-info{flex:1;min-width:0;}
+.sp-item-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sp-item-sub{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sp-item-dur{font-size:12px;color:var(--muted2);font-family:'DM Sans',monospace;flex-shrink:0;}
+.sp-loading{text-align:center;padding:20px;color:var(--muted);font-size:13px;}
+.sp-error{color:#f87171;font-size:13px;padding:10px 0;}
+.empty-state{text-align:center;padding:80px 40px;background:var(--panel);border:1px solid var(--border);border-radius:20px;}
+.empty-state .emoji{font-size:48px;margin-bottom:16px;}
+.empty-state h3{font-size:20px;font-weight:700;margin-bottom:8px;}
+.empty-state p{color:var(--muted);font-size:14px;}
+.now-playing{position:fixed;bottom:0;left:260px;right:0;z-index:200;background:rgba(15,5,26,.92);backdrop-filter:blur(30px);border-top:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;gap:24px;}
+.np-track{display:flex;align-items:center;gap:14px;width:260px;flex-shrink:0;}
+.np-thumb{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(168,85,247,.4);}
+.np-title{font-size:14px;font-weight:700;}
+.np-artist{font-size:12px;color:var(--muted);margin-top:2px;}
+.np-controls{flex:1;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.np-buttons{display:flex;align-items:center;gap:16px;}
+.np-btn{background:none;border:none;cursor:pointer;color:var(--muted);transition:color .15s;display:flex;align-items:center;justify-content:center;}
+.np-btn:hover{color:var(--white);}
+.np-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;}
+.np-btn.play{width:44px;height:44px;border-radius:50%;background:var(--accent);color:var(--bg3);}
+.np-btn.play:hover{background:var(--violet);color:var(--white);}
+.np-btn.play svg{fill:currentColor;stroke:none;}
+.np-progress{width:100%;display:flex;align-items:center;gap:10px;}
+.np-time{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;font-family:'DM Sans',monospace;width:32px;}
+.np-bar{flex:1;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;cursor:pointer;}
+.np-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--violet));border-radius:2px;transition:width .3s;}
+.np-vol{display:flex;align-items:center;gap:8px;width:160px;justify-content:flex-end;}
+.np-vol svg{width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2;}
+.vol-bar{width:80px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;cursor:pointer;}
+.vol-fill{height:100%;width:70%;background:var(--accent);border-radius:2px;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(168,85,247,.3);border-radius:3px;}::-webkit-scrollbar-thumb:hover{background:rgba(168,85,247,.5);}
+@media(max-width:1100px){.tracks-table-head,.track-row{grid-template-columns:36px 1fr 140px 80px 40px 40px;}.th:nth-child(4),.track-album{display:none;}}
+@media(max-width:800px){.sidebar{width:70px;padding:20px 0;}.logo-text,.nav-item span,.user-info,.nav-label{display:none;}.nav-item{justify-content:center;padding:12px;}.now-playing{left:70px;}.topbar,.page-content{padding-left:24px;padding-right:24px;}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-            <a href="/" class="back-btn" style="margin-bottom:0;">← Вернуться на главную</a>
-            <div style="display:flex;align-items:center;gap:12px;color:white;font-size:14px;">
-                <span>👤 <strong sec:authentication="name">Пользователь</strong></span>
-                <form method="post" action="/logout" style="margin:0;">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" style="background:rgba(255,255,255,0.2);color:white;border:2px solid rgba(255,255,255,0.5);padding:7px 15px;border-radius:20px;cursor:pointer;font-weight:600;font-size:13px;">🚪 Выйти</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="header">
-            <h1>🎵 Мои песни</h1>
-        </div>
-
-        <div class="content-wrapper">
-            <div class="songs-list">
-                <h2>Список песен</h2>
-                <div th:if="${songs != null and !songs.isEmpty()}">
-                    <div th:each="song : ${songs}" class="song-card">
-                        <div class="song-title">🎵 <span th:text="${song.title}"></span></div>
-                        <div class="song-info"><strong>Артист:</strong> <span th:text="${song.artist != null ? song.artist.name : '-'}"></span></div>
-                        <div class="song-info"><strong>Альбом:</strong> <span th:text="${song.album}"></span></div>
-                        <div class="song-info"><strong>Жанр:</strong> <span th:text="${song.genre}"></span></div>
-                        <div class="song-info"><strong>Длительность:</strong> <span th:text="${song.formattedDuration}"></span></div>
-                        <div class="song-actions">
-                            <a th:href="@{/songs/delete/{id}(id=${song.id})}" class="delete-btn"
-                               onclick="return confirm('Удалить эту песню?')">🗑️ Удалить</a>
-                        </div>
-                    </div>
-                </div>
-                <div th:if="${songs == null or songs.isEmpty()}" class="empty-state">
-                    <h3>Песен пока нет</h3>
-                    <p>Добавьте первую песню с помощью формы справа</p>
-                </div>
-            </div>
-
-            <div class="add-form">
-                <h2>➕ Добавить песню</h2>
-                <form method="post" th:action="@{/songs}">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <div class="form-group">
-                        <label for="title">Название песни:</label>
-                        <input type="text" id="title" name="title" placeholder="Введите название" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="artistId">Артист:</label>
-                        <select id="artistId" name="artistId" required>
-                            <option value="">Выберите артиста</option>
-                            <option th:each="artist : ${artists}"
-                                    th:value="${artist.id}"
-                                    th:text="${artist.name}"></option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="album">Альбом:</label>
-                        <input type="text" id="album" name="album" placeholder="Название альбома" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="genre">Жанр:</label>
-                        <select id="genre" name="genre" required>
-                            <option value="">Выберите жанр</option>
-                            <option value="Rock">Rock</option>
-                            <option value="Pop">Pop</option>
-                            <option value="Jazz">Jazz</option>
-                            <option value="Classical">Classical</option>
-                            <option value="Hip-Hop">Hip-Hop</option>
-                            <option value="Electronic">Electronic</option>
-                            <option value="Country">Country</option>
-                            <option value="R&amp;B">R&amp;B</option>
-                            <option value="Blues">Blues</option>
-                            <option value="Metal">Metal</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="duration">Длительность (секунды):</label>
-                        <input type="number" id="duration" name="duration" placeholder="180" min="1" required>
-                    </div>
-                    <button type="submit" class="submit-btn">Добавить песню</button>
-                </form>
-            </div>
-        </div>
+<div class="mesh"></div>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <div class="logo-bars"><span class="lb1"></span><span class="lb2"></span><span class="lb3"></span><span class="lb4"></span><span class="lb5"></span><span class="lb6"></span></div>
+        <span class="logo-text">AUEN</span>
+      </div>
     </div>
+    <div class="nav-section">
+      <div class="nav-label">Main</div>
+      <a href="/index" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </a>
+      <a href="/songs" class="nav-item active">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        <span>Songs</span>
+      </a>
+      <a href="/artists" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Artists</span>
+      </a>
+      <a href="/playlists" class="nav-item">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>Playlists</span>
+      </a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar" th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</div>
+        <div class="user-info">
+          <div class="user-name" sec:authentication="name">User</div>
+          <div class="user-role">Music Fan</div>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post" style="margin-top:8px">
+        <button type="submit" class="logout-btn">Sign out</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="greeting">Manage your library 🎵</div>
+        <div class="topbar-name">SONGS</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="hero">
+        <div class="hero-title">
+          <span class="line1">All</span>
+          <span class="line3">Songs<span class="sparkle">♪</span></span>
+        </div>
+      </div>
+
+      <!-- SPOTIFY SEARCH + PREVIEW -->
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(168,85,247,.2);border-radius:20px;padding:24px;margin-bottom:28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.15),transparent 70%);pointer-events:none;"></div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#a855f7"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+          <span style="color:#a855f7;">Найти трек в Spotify</span>
+          <span style="font-size:11px;font-weight:500;color:rgba(248,244,255,.35);margin-left:4px;">· 30 сек превью</span>
+        </div>
+        <div style="display:flex;gap:12px;">
+          <input id="spotify-search" type="text"
+            placeholder="Название трека или артист..."
+            style="flex:1;padding:11px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#f8f4ff;font-size:14px;outline:none;font-family:'Space Grotesk',sans-serif;transition:border-color .2s;"
+            onfocus="this.style.borderColor='rgba(168,85,247,.5)'"
+            onblur="this.style.borderColor='rgba(255,255,255,.1)'"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();searchSpotify();}">
+          <button id="spotify-search-btn" onclick="searchSpotify()" type="button"
+            style="background:linear-gradient(135deg,#7c3aed,#ec4899);border:none;border-radius:12px;color:white;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Space Grotesk',sans-serif;transition:opacity .2s;">
+            🔍 Найти в Spotify
+          </button>
+        </div>
+        <div id="spotify-results" style="margin-top:16px;"></div>
+      </div>
+
+      <!-- ADD SONG FORM -->
+      <div class="quick-add">
+        <div class="qa-title">＋ <span>Add New Track</span></div>
+        <form th:action="@{/songs}" method="post" class="qa-form">
+          <input class="qa-input" type="text" name="title" placeholder="Track title..." required>
+          <input class="qa-input" type="text" name="album" placeholder="Album...">
+          <select class="qa-select" name="artistId">
+            <option value="">No artist</option>
+            <option th:each="artist : ${artists}" th:value="${artist.id}" th:text="${artist.name}">Artist</option>
+          </select>
+          <select class="qa-select" name="genre">
+            <option value="">Genre...</option>
+            <option>Pop</option><option>Rock</option><option>Hip-Hop</option>
+            <option>R&amp;B</option><option>Jazz</option><option>Electronic</option>
+          </select>
+          <input class="qa-input" type="number" name="duration" placeholder="Duration (sec)" min="1" style="max-width:160px">
+          <button class="qa-btn" type="submit">Upload Track →</button>
+        </form>
+      </div>
+
+      <!-- SONGS TABLE -->
+      <div class="empty-state" th:if="${#lists.isEmpty(songs)}">
+        <div class="emoji">🎵</div><h3>No songs yet</h3>
+        <p>Add your first track above!</p>
+      </div>
+      <th:block th:unless="${#lists.isEmpty(songs)}">
+        <div class="tracks-table-head">
+          <div class="th center">#</div>
+          <div class="th">Title</div>
+          <div class="th">Artist</div>
+          <div class="th">Album</div>
+          <div class="th">Genre</div>
+          <div class="th right">Dur.</div>
+          <div class="th"></div>
+        </div>
+        <div th:each="song, stat : ${songs}"
+             th:class="${stat.index == 0 ? 'track-row playing' : 'track-row'}">
+          <div class="track-num" th:text="${stat.index == 0 ? '▶' : stat.count}">1</div>
+          <div class="track-info">
+            <div th:class="'track-thumb t' + ${(stat.index % 5) + 1}">🎵</div>
+            <div>
+              <div class="track-title" th:text="${song.title}">Title</div>
+              <div class="track-artist" th:text="${song.artist != null ? song.artist.name : '—'}">Artist</div>
+            </div>
+          </div>
+          <div class="track-album" th:text="${song.artist != null ? song.artist.name : '—'}">Artist</div>
+          <div class="track-album" th:text="${song.album != null ? song.album : '—'}">Album</div>
+          <div th:with="g=${song.genre != null ? song.genre.toLowerCase() : ''}"
+               th:class="${'track-genre ' + (g.contains('rb') or g.contains('rnb') ? 'tg-rb' : g.contains('pop') ? 'tg-pop' : g.contains('hip') ? 'tg-hip' : g.contains('ele') ? 'tg-ele' : 'tg-jaz')}"
+               th:text="${song.genre != null ? song.genre : '—'}">Genre</div>
+          <div class="track-dur" th:text="${song.formattedDuration}">0:00</div>
+          <div class="track-actions">
+            <a th:href="@{/songs/delete/{id}(id=${song.id})}" class="btn-del"
+               onclick="return confirm('Delete this song?')">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </a>
+          </div>
+        </div>
+      </th:block>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SPOTIFY PREVIEW BAR ═══ -->
+<div id="preview-bar" style="display:none;position:fixed;bottom:76px;left:260px;right:0;
+  background:rgba(10,3,20,.97);border-top:2px solid rgba(168,85,247,.4);
+  padding:12px 40px;align-items:center;gap:20px;
+  backdrop-filter:blur(30px);z-index:9999;box-shadow:0 -8px 40px rgba(168,85,247,.15);">
+
+  <div id="pb-thumb" style="width:46px;height:46px;border-radius:12px;flex-shrink:0;
+    background:linear-gradient(135deg,#7c3aed,#ec4899);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;box-shadow:0 0 20px rgba(168,85,247,.4);">🎵</div>
+
+  <div style="min-width:0;flex-shrink:0;max-width:220px;">
+    <div id="pb-title" style="font-size:14px;font-weight:700;color:#f8f4ff;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+    <div id="pb-artist" style="font-size:12px;color:#a855f7;margin-top:2px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+  </div>
+
+  <audio id="pb-audio" controls style="flex:1;height:32px;min-width:180px;accent-color:#a855f7;"></audio>
+
+  <div style="font-size:11px;color:rgba(248,244,255,.35);white-space:nowrap;flex-shrink:0;">⏱ 30 сек</div>
+
+  <button onclick="stopPreview()" type="button"
+    style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
+    color:#f87171;padding:8px 16px;border-radius:10px;cursor:pointer;
+    font-size:13px;font-weight:700;flex-shrink:0;transition:background .2s;
+    font-family:'Space Grotesk',sans-serif;"
+    onmouseover="this.style.background='rgba(239,68,68,.3)'"
+    onmouseout="this.style.background='rgba(239,68,68,.15)'">✕ Стоп</button>
+</div>
+
+<div class="now-playing">
+  <div class="np-track">
+    <div class="np-thumb">🎵</div>
+    <div class="np-info"><div class="np-title" id="np-title">AUEN MUSIC</div><div class="np-artist" id="np-artist">Select a track</div></div>
+  </div>
+  <div class="np-controls">
+    <div class="np-buttons">
+      <button class="np-btn"><svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+      <button class="np-btn play" onclick="togglePlay(this)"><svg viewBox="0 0 24 24" id="play-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+      <button class="np-btn"><svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+    </div>
+    <div class="np-progress">
+      <span class="np-time">0:00</span>
+      <div class="np-bar"><div class="np-fill" id="np-fill"></div></div>
+      <span class="np-time" style="text-align:right">0:00</span>
+    </div>
+  </div>
+  <div class="np-vol">
+    <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+    <div class="vol-bar"><div class="vol-fill"></div></div>
+  </div>
+</div>
+<script>
+/* ── BOTTOM NOW-PLAYING MOCK TOGGLE ── */
+let isPlaying=false,progressInterval,progress=0;
+function togglePlay(btn){isPlaying=!isPlaying;const icon=document.getElementById('play-icon');if(isPlaying){icon.innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';progressInterval=setInterval(()=>{progress=Math.min(100,progress+.3);document.getElementById('np-fill').style.width=progress+'%';},300);}else{icon.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';clearInterval(progressInterval);}}
+
+/* ── PREVIEW PLAYER ── */
+let currentAudio = null;
+let currentBtn   = null;
+
+function _getAudio() {
+  if (!currentAudio) {
+    currentAudio = document.getElementById('pb-audio');
+    currentAudio.addEventListener('ended', () => {
+      if (currentBtn) {
+        currentBtn.textContent = '▶';
+        currentBtn.style.background = 'linear-gradient(135deg,#7c3aed,#a855f7)';
+        currentBtn = null;
+      }
+    });
+  }
+  return currentAudio;
+}
+
+function playPreview(previewUrl, title, artist, btnEl) {
+  const audio = _getAudio();
+  const bar   = document.getElementById('preview-bar');
+
+  if (!previewUrl || previewUrl === 'null' || previewUrl === '') {
+    showNoPreview(btnEl); return;
+  }
+
+  // Та же кнопка — пауза/продолжить
+  if (currentBtn === btnEl) {
+    if (!audio.paused) {
+      audio.pause();
+      btnEl.textContent = '▶';
+      btnEl.style.background = 'linear-gradient(135deg,#7c3aed,#a855f7)';
+    } else {
+      audio.play();
+      btnEl.textContent = '⏸';
+      btnEl.style.background = 'linear-gradient(135deg,#10b981,#06b6d4)';
+    }
+    return;
+  }
+
+  // Другая кнопка — сбросить предыдущую
+  if (currentBtn) {
+    currentBtn.textContent = '▶';
+    currentBtn.style.background = 'linear-gradient(135deg,#7c3aed,#a855f7)';
+  }
+
+  // Новый трек
+  audio.src = previewUrl;
+  audio.play().catch(() => showNoPreview(btnEl));
+
+  bar.style.display = 'flex';
+  document.getElementById('pb-title').textContent  = title;
+  document.getElementById('pb-artist').textContent = artist + ' · Spotify Preview';
+
+  currentBtn = btnEl;
+  btnEl.textContent = '⏸';
+  btnEl.style.background = 'linear-gradient(135deg,#10b981,#06b6d4)';
+}
+
+function stopPreview() {
+  const audio = _getAudio();
+  audio.pause();
+  audio.src = '';
+  document.getElementById('preview-bar').style.display = 'none';
+  if (currentBtn) {
+    currentBtn.textContent = '▶';
+    currentBtn.style.background = 'linear-gradient(135deg,#7c3aed,#a855f7)';
+    currentBtn = null;
+  }
+}
+
+function showNoPreview(btnEl) {
+  const orig = btnEl.textContent;
+  btnEl.textContent = '😔 Нет превью';
+  btnEl.style.background = 'rgba(239,68,68,.3)';
+  setTimeout(() => {
+    btnEl.textContent = orig;
+    btnEl.style.background = btnEl.dataset.hasPreview === '1'
+      ? 'linear-gradient(135deg,#7c3aed,#a855f7)'
+      : 'rgba(255,255,255,.1)';
+  }, 2000);
+}
+
+/* ── SPOTIFY SEARCH ── */
+async function searchSpotify() {
+  const q   = document.getElementById('spotify-search').value.trim();
+  if (!q) return;
+  const btn = document.getElementById('spotify-search-btn');
+  btn.textContent = '⏳ Поиск...';
+  btn.disabled = true;
+  try {
+    const res  = await fetch('/api/spotify/search/tracks?q=' + encodeURIComponent(q));
+    const data = await res.json();
+    renderResults(data);
+  } catch(e) {
+    document.getElementById('spotify-results').innerHTML =
+      '<div style="color:#f87171;padding:12px;">❌ Ошибка: ' + e.message + '</div>';
+  } finally {
+    btn.textContent = '🔍 Найти в Spotify';
+    btn.disabled = false;
+  }
+}
+
+function renderResults(tracks) {
+  const container = document.getElementById('spotify-results');
+  container.innerHTML = '';
+
+  if (!tracks || tracks.length === 0) {
+    container.innerHTML = '<div style="color:rgba(248,244,255,.4);padding:20px;text-align:center;">Ничего не найдено 😔</div>';
+    return;
+  }
+
+  tracks.forEach(track => {
+    const hasPreview = !!(track.preview && track.preview !== 'null' && track.preview !== '');
+    const dur = Math.floor(track.duration/60) + ':' + String(track.duration%60).padStart(2,'0');
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);transition:background .15s;';
+    row.onmouseover = () => row.style.background = 'rgba(168,85,247,.1)';
+    row.onmouseout  = () => row.style.background = 'rgba(255,255,255,.04)';
+
+    const coverHtml = track.image
+      ? `<img src="${track.image}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" onerror="this.parentElement.textContent='🎵'">`
+      : '🎵';
+
+    // Безопасные строки для onclick
+    const safeTitle  = (track.title  || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const safeArtist = (track.artist || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const safeAlbum  = (track.album  || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const safeGenre  = (track.genre  || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const safePreview= (track.preview|| '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+    row.innerHTML = `
+      <div style="width:42px;height:42px;border-radius:8px;flex-shrink:0;overflow:hidden;
+          background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;
+          align-items:center;justify-content:center;font-size:18px;">${coverHtml}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:700;color:#f8f4ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(track.title)}</div>
+        <div style="font-size:12px;color:rgba(248,244,255,.5);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(track.artist)} · ${esc(track.album)}</div>
+      </div>
+      <div style="font-size:12px;color:rgba(248,244,255,.4);flex-shrink:0;">${dur}</div>
+      <button
+        data-has-preview="${hasPreview?'1':'0'}"
+        onclick="playPreview('${safePreview}','${safeTitle}','${safeArtist}',this)"
+        title="${hasPreview ? 'Слушать 30 сек превью' : 'Превью недоступно'}"
+        style="background:${hasPreview ? 'linear-gradient(135deg,#7c3aed,#a855f7)' : 'rgba(255,255,255,.1)'};
+          border:none;border-radius:8px;color:white;width:36px;height:36px;font-size:16px;
+          cursor:${hasPreview ? 'pointer' : 'default'};flex-shrink:0;
+          display:flex;align-items:center;justify-content:center;transition:opacity .2s;">
+        ${hasPreview ? '▶' : '🔇'}
+      </button>
+      <button
+        onclick="fillForm('${safeTitle}','${safeArtist}','${safeAlbum}','${safeGenre}',${track.duration})"
+        style="background:linear-gradient(135deg,#065f46,#10b981);border:none;border-radius:8px;
+          color:white;padding:0 14px;height:36px;font-size:12px;font-weight:700;
+          cursor:pointer;flex-shrink:0;white-space:nowrap;font-family:'Space Grotesk',sans-serif;
+          transition:opacity .2s;"
+        onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+        + Добавить
+      </button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function fillForm(title, artist, album, genre, duration) {
+  const t  = document.querySelector('input[name="title"]');
+  const al = document.querySelector('input[name="album"]');
+  const g  = document.querySelector('select[name="genre"]');
+  const d  = document.querySelector('input[name="duration"]');
+
+  if (t)  t.value = title;
+  if (al) al.value = album;
+  if (d)  d.value = duration;
+  if (g && genre) {
+    const gl = genre.toLowerCase();
+    for (let opt of g.options) {
+      if (opt.value.toLowerCase() === gl ||
+          gl.includes(opt.value.toLowerCase()) ||
+          opt.value.toLowerCase().includes(gl)) {
+        g.value = opt.value; break;
+      }
+    }
+  }
+
+  const form = document.querySelector('.quick-add');
+  if (form) {
+    form.scrollIntoView({behavior:'smooth', block:'center'});
+    form.style.transition = 'border-color .3s, box-shadow .3s';
+    form.style.borderColor = 'rgba(168,85,247,.6)';
+    form.style.boxShadow   = '0 0 32px rgba(168,85,247,.2)';
+    setTimeout(() => {
+      form.style.borderColor = '';
+      form.style.boxShadow   = '';
+    }, 2000);
+  }
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
 </body>
 </html>
 

@@ -8,10 +8,14 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 
 @Configuration
 @EnableWebSecurity
@@ -43,20 +47,34 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers(new AntPathRequestMatcher("/api/**"))
-            )
-
+            .securityMatcher("/api/**")
+            .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/login", "/register", "/css/**", "/js/**", "/error").permitAll()
-                .requestMatchers("/api/**").authenticated()
-                .requestMatchers("/", "/index", "/artists", "/songs", "/playlists").authenticated()
+                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers("/api/spotify/**").permitAll()
                 .anyRequest().authenticated()
             )
+            .httpBasic(httpBasic -> {})
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authenticationProvider(authenticationProvider());
 
+        return http.build();
+    }
+
+    @Bean
+    public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers(new AntPathRequestMatcher("/logout"))
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/login", "/register", "/auth/**", "/css/**", "/js/**", "/error").permitAll()
+                .anyRequest().authenticated()
+            )
             .formLogin(form -> form
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
@@ -64,7 +82,6 @@ public class SecurityConfig {
                 .failureUrl("/login?error")
                 .permitAll()
             )
-
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")
@@ -73,11 +90,18 @@ public class SecurityConfig {
                 .permitAll()
             )
 
-            .httpBasic(httpBasic -> {});
-
-        http.authenticationProvider(authenticationProvider());
+            .sessionManagement(session -> session
+                .sessionFixation().migrateSession()
+                .maximumSessions(1)
+                .expiredUrl("/login?expired")
+            )
+            .authenticationProvider(authenticationProvider());
 
         return http.build();
     }
-}
 
+    @Bean
+    public ServletListenerRegistrationBean<HttpSessionEventPublisher> sessionEventPublisher() {
+        return new ServletListenerRegistrationBean<>(new HttpSessionEventPublisher());
+    }
+}
