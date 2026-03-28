@@ -3,9 +3,12 @@ package com.example.lab1;
 import com.example.lab1.model.Artist;
 import com.example.lab1.model.Playlist;
 import com.example.lab1.model.Song;
+import com.example.lab1.model.User;
 import com.example.lab1.repository.ArtistRepository;
 import com.example.lab1.repository.PlaylistRepository;
 import com.example.lab1.repository.SongRepository;
+import com.example.lab1.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -15,17 +18,31 @@ public class DataInitializer implements CommandLineRunner {
     private final ArtistRepository artistRepository;
     private final SongRepository songRepository;
     private final PlaylistRepository playlistRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(ArtistRepository artistRepository,
                            SongRepository songRepository,
-                           PlaylistRepository playlistRepository) {
+                           PlaylistRepository playlistRepository,
+                           UserRepository userRepository,
+                           PasswordEncoder passwordEncoder) {
         this.artistRepository = artistRepository;
         this.songRepository = songRepository;
         this.playlistRepository = playlistRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
+        if (!userRepository.existsByUsername("admin")) {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setRole("ROLE_ADMIN");
+            userRepository.save(admin);
+        }
+
         if (artistRepository.count() > 0) return;
 
 

@@ -17,11 +17,12 @@ public class User {
     private String password;
 
     @Column(nullable = false)
-    private String role = "USER";
+    private String role = "ROLE_USER";
 
     private String fullName;
 
-    private String groupName;
+    @Column(unique = true)
+    private String email;
 
     public User() {}
 
@@ -46,6 +47,6 @@ public class User {
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public String getGroupName() { return groupName; }
-    public void setGroupName(String groupName) { this.groupName = groupName; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 }

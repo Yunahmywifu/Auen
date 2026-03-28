@@ -32,10 +32,9 @@ public class SpotifyController {
                         ? track.getArtists()[0].getName() : "");
                 item.put("album", track.getAlbum() != null ? track.getAlbum().getName() : "");
                 item.put("duration", track.getDurationMs() / 1000);
-                item.put("genre", "");  // Spotify не возвращает жанр трека напрямую
+                item.put("genre", "");
                 item.put("preview", track.getPreviewUrl());
 
-                // Обложка альбома
                 if (track.getAlbum() != null && track.getAlbum().getImages() != null
                         && track.getAlbum().getImages().length > 0) {
                     item.put("image", track.getAlbum().getImages()[0].getUrl());
@@ -52,6 +51,26 @@ public class SpotifyController {
         }
     }
 
+    @GetMapping("/charts/top50")
+    public ResponseEntity<List<Map<String, Object>>> getTop50Charts() {
+        try {
+            return ResponseEntity.ok(spotifyService.getTop20Charts());
+        } catch (Exception e) {
+            System.out.println("❌ /charts/top50 error: " + e.getMessage());
+            return ResponseEntity.ok(new ArrayList<>());
+        }
+    }
+
+    @GetMapping("/charts/artists")
+    public ResponseEntity<List<Map<String, Object>>> getTopArtists() {
+        try {
+            return ResponseEntity.ok(spotifyService.getTopArtists());
+        } catch (Exception e) {
+            System.out.println("❌ /charts/artists error: " + e.getMessage());
+            return ResponseEntity.ok(new ArrayList<>());
+        }
+    }
+
     @GetMapping("/search/artists")
     public ResponseEntity<?> searchArtists(@RequestParam String q) {
         try {
@@ -61,7 +80,6 @@ public class SpotifyController {
             for (Artist artist : artists) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("name", artist.getName());
-                // Первый жанр или пустая строка
                 String[] genres = artist.getGenres();
                 item.put("genre", genres != null && genres.length > 0 ? genres[0] : "");
                 item.put("followers", artist.getFollowers() != null ? artist.getFollowers().getTotal() : 0);

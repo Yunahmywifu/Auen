@@ -17,9 +17,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    /**
-     * Отправить код подтверждения на указанный email.
-     */
+
     public void sendConfirmationCode(String to, String code) {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setFrom(fromAddress);

@@ -8,6 +8,7 @@ import com.example.lab1.repository.ArtistRepository;
 import com.example.lab1.repository.PlaylistRepository;
 import com.example.lab1.repository.SongRepository;
 import com.example.lab1.repository.UserRepository;
+import com.example.lab1.service.SpotifyService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,20 +24,22 @@ public class AuthController {
     private final ArtistRepository artistRepository;
     private final SongRepository songRepository;
     private final PlaylistRepository playlistRepository;
+    private final SpotifyService spotifyService;
 
     public AuthController(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           ArtistRepository artistRepository,
                           SongRepository songRepository,
-                          PlaylistRepository playlistRepository) {
+                          PlaylistRepository playlistRepository,
+                          SpotifyService spotifyService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.artistRepository = artistRepository;
         this.songRepository = songRepository;
         this.playlistRepository = playlistRepository;
+        this.spotifyService = spotifyService;
     }
 
-    // Вспомогательный метод — добавляет currentUser в модель
     private void addCurrentUser(Model model, UserDetails userDetails) {
         if (userDetails != null) {
             userRepository.findByUsername(userDetails.getUsername())
@@ -53,8 +56,7 @@ public class AuthController {
     @PostMapping("/register")
     public String registerUser(@RequestParam String username,
                                 @RequestParam String password,
-                                @RequestParam(required = false) String fullName,
-                                @RequestParam(required = false) String groupName,
+                                @RequestParam(required = false) String email,
                                 Model model) {
         if (userRepository.existsByUsername(username)) {
             model.addAttribute("error", "Пользователь с таким именем уже существует!");
@@ -64,8 +66,7 @@ public class AuthController {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole("USER");
-        if (fullName != null && !fullName.isBlank()) user.setFullName(fullName.trim());
-        if (groupName != null && !groupName.isBlank()) user.setGroupName(groupName.trim());
+        if (email != null && !email.isBlank()) user.setEmail(email.trim());
         userRepository.save(user);
         return "redirect:/login?registered";
     }
@@ -75,11 +76,31 @@ public class AuthController {
 
     @GetMapping("/index")
     public String indexPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
-        model.addAttribute("songCount", songRepository.count());
-        model.addAttribute("artistCount", artistRepository.count());
+        model.addAttribute("songCount",     songRepository.count());
+        model.addAttribute("artistCount",   artistRepository.count());
         model.addAttribute("playlistCount", playlistRepository.count());
-        model.addAttribute("artists", artistRepository.findAll());
-        model.addAttribute("songs", songRepository.findAll());
+        model.addAttribute("artists",       artistRepository.findAll());
+        model.addAttribute("songs",         songRepository.findAll());
+
+        try {
+            model.addAttribute("featuredPlaylists",
+                    playlistRepository.findAll().stream().limit(8).toList());
+        } catch (Exception e) {
+            model.addAttribute("featuredPlaylists", java.util.Collections.emptyList());
+        }
+
+        try {
+            model.addAttribute("topArtists", spotifyService.getTopArtists());
+        } catch (Exception e) {
+            model.addAttribute("topArtists", java.util.Collections.emptyList());
+        }
+
+        try {
+            model.addAttribute("top20Songs", spotifyService.getTop20Charts());
+        } catch (Exception e) {
+            model.addAttribute("top20Songs", java.util.Collections.emptyList());
+        }
+
         addCurrentUser(model, userDetails);
         return "index";
     }

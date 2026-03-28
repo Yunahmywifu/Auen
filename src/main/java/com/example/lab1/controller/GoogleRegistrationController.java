@@ -58,9 +58,24 @@ public class GoogleRegistrationController {
         this.emailService = emailService;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // GET /auth/token?access_token=...
-    // ─────────────────────────────────────────────────────────────
+    @GetMapping("/google")
+    public String googleAuth(HttpServletRequest request) {
+        String redirectUrl = supabaseUrl + "/auth/v1/authorize?provider=google&redirect_to="
+                + getBaseUrl(request) + "/auth/fragment";
+        return "redirect:" + redirectUrl;
+    }
+
+    @GetMapping("/fragment")
+    public String fragmentPage() {
+        return "auth-fragment";
+    }
+
+    private String getBaseUrl(HttpServletRequest request) {
+        return request.getScheme() + "://" + request.getServerName()
+                + (request.getServerPort() != 80 && request.getServerPort() != 443
+                ? ":" + request.getServerPort() : "");
+    }
+
     @GetMapping("/token")
     public String handleToken(@RequestParam(value = "access_token", required = false) String accessToken,
                                HttpServletRequest request) {
@@ -92,13 +107,11 @@ public class GoogleRegistrationController {
                 return "redirect:/login?error";
             }
 
-            // Существующий пользователь → сразу логиним
             if (userRepository.findByUsername(email).isPresent()) {
                 loginUser(email, request);
                 return "redirect:/index";
             }
 
-            // Новый пользователь → сохраняем email в сессии и переходим на setup
             HttpSession session = request.getSession(true);
             session.setAttribute("oauth_email", email);
             return "redirect:/auth/setup";
@@ -109,9 +122,6 @@ public class GoogleRegistrationController {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // GET /auth/setup
-    // ─────────────────────────────────────────────────────────────
     @GetMapping("/setup")
     public String setupPage(HttpSession session, Model model) {
         String email = (String) session.getAttribute("oauth_email");
@@ -122,9 +132,6 @@ public class GoogleRegistrationController {
         return "auth-setup";
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // POST /auth/setup
-    // ─────────────────────────────────────────────────────────────
     @PostMapping("/setup")
     public String handleSetup(@RequestParam String username,
                                @RequestParam String password,
@@ -139,7 +146,6 @@ public class GoogleRegistrationController {
 
         model.addAttribute("email", email);
 
-        // Валидация username
         if (username == null || username.trim().length() < 3) {
             model.addAttribute("error", "Имя пользователя должно содержать минимум 3 символа");
             return "auth-setup";
@@ -149,7 +155,6 @@ public class GoogleRegistrationController {
             return "auth-setup";
         }
 
-        // Валидация пароля
         if (password == null || password.length() < 8) {
             model.addAttribute("error", "Пароль должен содержать минимум 8 символов");
             return "auth-setup";
@@ -159,7 +164,6 @@ public class GoogleRegistrationController {
             return "auth-setup";
         }
 
-        // Генерация 6-значного кода
         String code = String.valueOf(100000 + new Random().nextInt(900000));
 
         PendingRegistration pending = new PendingRegistration(
@@ -171,7 +175,6 @@ public class GoogleRegistrationController {
         );
         pendingStore.save(pending);
 
-        // Отправка кода на email
         try {
             emailService.sendConfirmationCode(email, code);
         } catch (Exception ex) {
@@ -184,9 +187,6 @@ public class GoogleRegistrationController {
         return "redirect:/auth/confirm";
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // GET /auth/confirm
-    // ─────────────────────────────────────────────────────────────
     @GetMapping("/confirm")
     public String confirmPage(HttpSession session, Model model) {
         String email = (String) session.getAttribute("oauth_email");
@@ -197,9 +197,6 @@ public class GoogleRegistrationController {
         return "auth-confirm";
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // POST /auth/confirm
-    // ─────────────────────────────────────────────────────────────
     @PostMapping("/confirm")
     public String handleConfirm(@RequestParam String code,
                                  HttpSession session,
@@ -229,26 +226,21 @@ public class GoogleRegistrationController {
             return "auth-confirm";
         }
 
-        // Создаём пользователя в БД
         User user = new User();
         user.setUsername(pending.getUsername());
         user.setPassword(pending.getEncodedPassword());
         user.setRole("USER");
+        user.setEmail(pending.getEmail());
         userRepository.save(user);
 
-        // Логиним
         loginUser(pending.getUsername(), request);
 
-        // Чистим
         pendingStore.remove(email);
         session.removeAttribute("oauth_email");
 
         return "redirect:/index";
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Вспомогательный метод: залогинить пользователя через SecurityContext
-    // ─────────────────────────────────────────────────────────────
     private void loginUser(String username, HttpServletRequest request) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         UsernamePasswordAuthenticationToken auth =
@@ -266,4 +258,3 @@ public class GoogleRegistrationController {
                 securityContext);
     }
 }
-

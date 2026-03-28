@@ -40,14 +40,14 @@ public class AuthRestController {
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole("USER");
+        user.setRole("ROLE_USER");
         userRepository.save(user);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(
                         "message", "Пользователь успешно создан",
                         "username", username,
-                        "role", "USER"
+                        "role", "ROLE_USER"
                 ));
     }
 

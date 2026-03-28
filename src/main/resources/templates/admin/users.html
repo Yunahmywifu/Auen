@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUEN Admin - Users</title>
+    <style>
+        body{font-family:Arial,sans-serif;background:#0f051a;color:#f8f4ff;margin:0;padding:24px;}
+        .wrap{max-width:1000px;margin:0 auto;}
+        .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+        .btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid rgba(255,255,255,.15);color:#f8f4ff;background:rgba(255,255,255,.06);}
+        .btn:hover{background:rgba(168,85,247,.22);}
+        table{width:100%;border-collapse:collapse;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);}
+        th,td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;}
+        th{font-size:12px;color:rgba(248,244,255,.6);letter-spacing:1px;text-transform:uppercase;}
+        .actions{display:flex;gap:8px;}
+        .edit{background:rgba(45,212,191,.14);}
+        .del{background:rgba(239,68,68,.16);}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <h1>Users Management</h1>
+        <div style="display:flex;gap:8px">
+            <a class="btn" href="/index">Back</a>
+            <a class="btn" href="/admin/create">Create User</a>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th sec:authorize="hasRole('ADMIN')">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.id}">1</td>
+            <td th:text="${user.username}">admin</td>
+            <td th:text="${user.role}">ROLE_USER</td>
+            <td sec:authorize="hasRole('ADMIN')">
+                <div class="actions">
+                    <a class="btn edit" th:href="@{/admin/edit/{id}(id=${user.id})}">Edit</a>
+                    <a class="btn del" th:href="@{/admin/delete/{id}(id=${user.id})}"
+                       onclick="return confirm('Delete this user?');">Delete</a>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+
