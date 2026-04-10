@@ -4,56 +4,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AUEN Admin - Users</title>
+    <title>AUEN — Admin Users</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body{font-family:Arial,sans-serif;background:#0f051a;color:#f8f4ff;margin:0;padding:24px;}
-        .wrap{max-width:1000px;margin:0 auto;}
-        .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-        .btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;border:1px solid rgba(255,255,255,.15);color:#f8f4ff;background:rgba(255,255,255,.06);}
-        .btn:hover{background:rgba(168,85,247,.22);}
-        table{width:100%;border-collapse:collapse;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);}
-        th,td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;}
-        th{font-size:12px;color:rgba(248,244,255,.6);letter-spacing:1px;text-transform:uppercase;}
+        :root{--bg:#1a0a2e;--bg2:#160824;--bg3:#0f051a;--panel:rgba(255,255,255,.05);--panel2:rgba(255,255,255,.08);--border:rgba(255,255,255,.08);--purple:#7c3aed;--violet:#a855f7;--pink:#ec4899;--teal:#2dd4bf;--white:#f8f4ff;--muted:rgba(248,244,255,.45);--muted2:rgba(248,244,255,.25);--accent:#c084fc;}
+        *{margin:0;padding:0;box-sizing:border-box;} html{scroll-behavior:smooth;}
+        body{font-family:'Space Grotesk',sans-serif;background:var(--bg3);color:var(--white);min-height:100vh;overflow-x:hidden;}
+        body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");opacity:.5;}
+        .mesh{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(124,58,237,.55) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 80% 10%,rgba(236,72,153,.35) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 60% 70%,rgba(45,212,191,.2) 0%,transparent 70%),radial-gradient(ellipse 70% 80% at 10% 80%,rgba(168,85,247,.3) 0%,transparent 70%),var(--bg3);}
+        .layout{display:flex;min-height:100vh;position:relative;z-index:1;}
+
+        .sidebar{width:260px;flex-shrink:0;background:rgba(15,5,26,.8);backdrop-filter:blur(20px);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:32px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+        .logo{padding:0 28px 32px;border-bottom:1px solid var(--border);margin-bottom:24px;}
+        .logo-mark{display:flex;align-items:center;gap:10px;}
+        .logo-bars{display:flex;align-items:flex-end;gap:3px;height:28px;}
+        .logo-bars span{width:4px;background:var(--accent);border-radius:2px;display:block;}
+        .lb1{height:14px;}.lb2{height:22px;}.lb3{height:28px;}.lb4{height:20px;}.lb5{height:16px;}.lb6{height:24px;}
+        @keyframes bar-pulse{0%,100%{transform:scaleY(1);}50%{transform:scaleY(.5);}}
+        .logo-bars span:nth-child(1){animation:bar-pulse 1.2s .0s ease-in-out infinite;}
+        .logo-bars span:nth-child(2){animation:bar-pulse 1.2s .15s ease-in-out infinite;}
+        .logo-bars span:nth-child(3){animation:bar-pulse 1.2s .3s ease-in-out infinite;}
+        .logo-bars span:nth-child(4){animation:bar-pulse 1.2s .45s ease-in-out infinite;}
+        .logo-bars span:nth-child(5){animation:bar-pulse 1.2s .6s ease-in-out infinite;}
+        .logo-bars span:nth-child(6){animation:bar-pulse 1.2s .75s ease-in-out infinite;}
+        .logo-text{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;color:var(--white);}
+        .nav-section{padding:0 16px;margin-bottom:8px;}
+        .nav-label{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--muted2);text-transform:uppercase;padding:8px 12px;margin-bottom:4px;}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--muted);font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;margin-bottom:2px;border:1px solid transparent;}
+        .nav-item:hover{background:var(--panel);color:var(--white);}
+        .nav-item.active{background:linear-gradient(135deg,rgba(168,85,247,.25),rgba(124,58,237,.15));color:var(--accent);border-color:rgba(168,85,247,.25);}
+        .nav-item svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;flex-shrink:0;}
+        .sidebar-bottom{margin-top:auto;padding:20px 16px 0;border-top:1px solid var(--border);}
+        .user-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--border);}
+        .user-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;}
+        .user-info{flex:1;min-width:0;}
+        .user-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .user-role{font-size:11px;color:var(--muted);margin-top:1px;}
+        .logout-btn{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:all .2s;width:100%;text-align:center;margin-top:8px;}
+        .logout-btn:hover{background:rgba(239,68,68,.15);color:#f87171;}
+
+        .main{flex:1;overflow-y:auto;min-width:0;}
+        .topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 40px;background:rgba(15,5,26,.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);gap:20px;}
+        .greeting{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:2px;}
+        .topbar-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;}
+        .page-content{padding:36px 40px 120px;}
+
+        .hero-title{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:.95;letter-spacing:2px;margin-bottom:28px;}
+        .hero-title .line1{display:block;}
+        .hero-title .line3{display:block;-webkit-text-stroke:2px var(--accent);color:transparent;}
+
+        .users-panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:22px;backdrop-filter:blur(18px);}
+        .users-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;}
+        .users-head{font-size:18px;font-weight:700;}
+        .users-actions{display:flex;gap:10px;align-items:center;}
+        .btn-back{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:10px;text-decoration:none;border:1px solid rgba(255,255,255,.15);color:#f8f4ff;background:rgba(255,255,255,.06);transition:.2s;}
+        .btn-back:hover{background:rgba(168,85,247,.18);}
+        .btn-create{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:12px;text-decoration:none;border:1px solid rgba(168,85,247,.35);color:#fff;background:linear-gradient(135deg,#7c3aed,#ec4899);font-weight:700;transition:.2s;}
+        .btn-create:hover{opacity:.92;transform:translateY(-1px);}
+
+        table{width:100%;border-collapse:separate;border-spacing:0 10px;}
+        thead th{font-size:11px;color:var(--muted2);letter-spacing:2px;text-transform:uppercase;text-align:left;padding:0 14px 4px;}
+        tbody tr{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);transition:.2s;}
+        tbody tr:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 1px rgba(168,85,247,.25),0 10px 26px rgba(124,58,237,.15);}
+        tbody td{padding:14px;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);}
+        tbody td:first-child{border-left:1px solid rgba(255,255,255,.06);border-top-left-radius:12px;border-bottom-left-radius:12px;}
+        tbody td:last-child{border-right:1px solid rgba(255,255,255,.06);border-top-right-radius:12px;border-bottom-right-radius:12px;}
+        .id-col{color:var(--muted);font-family:monospace;}
+        .name-col{font-weight:600;}
+
+        .role-cell{font-size:12px;font-weight:700;display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;border:1px solid transparent;min-width:108px;justify-content:center;}
+        .role-admin{background:linear-gradient(135deg,rgba(124,58,237,.35),rgba(236,72,153,.25));color:#ddd6fe;border-color:rgba(168,85,247,.45);}
+        .role-user{background:rgba(45,212,191,.15);color:#99f6e4;border-color:rgba(45,212,191,.35);}
+
         .actions{display:flex;gap:8px;}
-        .edit{background:rgba(45,212,191,.14);}
-        .del{background:rgba(239,68,68,.16);}
+        .btn-action{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:600;border:1px solid transparent;transition:.2s;}
+        .edit{background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.38);color:#c4b5fd;}
+        .edit:hover{background:rgba(168,85,247,.25);}
+        .del{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.35);color:#fca5a5;}
+        .del:hover{background:rgba(239,68,68,.24);}
+
+        .now-playing{position:fixed;bottom:0;left:260px;right:0;z-index:200;background:rgba(15,5,26,.92);backdrop-filter:blur(30px);border-top:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;gap:24px;}
+        .np-track{display:flex;align-items:center;gap:14px;width:260px;flex-shrink:0;}
+        .np-thumb{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:22px;}
+        .np-title{font-size:14px;font-weight:700;}
+        .np-artist{font-size:12px;color:var(--muted);margin-top:2px;}
+        .np-controls{flex:1;display:flex;flex-direction:column;align-items:center;gap:10px;}
+        .np-buttons{display:flex;align-items:center;gap:16px;}
+        .np-btn{background:none;border:none;cursor:pointer;color:var(--muted);transition:color .15s;display:flex;align-items:center;justify-content:center;}
+        .np-btn:hover{color:var(--white);}
+        .np-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;}
+        .np-btn.play{width:44px;height:44px;border-radius:50%;background:var(--accent);color:var(--bg3);}
+        .np-btn.play svg{fill:currentColor;stroke:none;}
+        .np-progress{width:100%;display:flex;align-items:center;gap:10px;}
+        .np-time{font-size:11px;color:var(--muted);width:32px;}
+        .np-bar{flex:1;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;}
+        .np-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--violet));border-radius:2px;transition:width .3s;}
+        .np-vol{display:flex;align-items:center;gap:8px;width:160px;justify-content:flex-end;}
+        .np-vol svg{width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2;}
+        .vol-bar{width:80px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;}
+        .vol-fill{height:100%;width:70%;background:var(--accent);border-radius:2px;}
+
+        @media(max-width:980px){
+            .users-top{flex-direction:column;align-items:flex-start;}
+            .users-actions{width:100%;}
+            .btn-back,.btn-create{flex:1;}
+        }
+        @media(max-width:800px){
+            .sidebar{width:70px;padding:20px 0;}
+            .logo-text,.nav-item span,.user-info,.nav-label{display:none;}
+            .nav-item{justify-content:center;padding:12px;}
+            .now-playing{left:70px;}
+            .topbar,.page-content{padding-left:24px;padding-right:24px;}
+            table{display:block;overflow-x:auto;}
+        }
     </style>
 </head>
 <body>
-<div class="wrap">
-    <div class="top">
-        <h1>Users Management</h1>
-        <div style="display:flex;gap:8px">
-            <a class="btn" href="/index">Back</a>
-            <a class="btn" href="/admin/create">Create User</a>
+<div class="mesh"></div>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-mark">
+                <div class="logo-bars"><span class="lb1"></span><span class="lb2"></span><span class="lb3"></span><span class="lb4"></span><span class="lb5"></span><span class="lb6"></span></div>
+                <span class="logo-text">AUEN</span>
+            </div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-label">Main</div>
+            <a href="/index" class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Home</span>
+            </a>
+            <a href="/songs" class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                <span>Songs</span>
+            </a>
+            <a href="/artists" class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>Artists</span>
+            </a>
+            <a href="/playlists" class="nav-item">
+                <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <span>Playlists</span>
+            </a>
+            <a href="/admin/users" class="nav-item active" sec:authorize="hasRole('ADMIN')">
+                <svg viewBox="0 0 24 24"><path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-4z"/><path d="M9 12l2 2 4-4"/></svg>
+                <span>Admin</span>
+            </a>
+        </div>
+        <div class="sidebar-bottom">
+            <div class="user-card">
+                <div class="user-avatar" th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</div>
+                <div class="user-info">
+                    <div class="user-name" sec:authentication="name">User</div>
+                    <div class="user-role">Music Fan</div>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post" style="margin-top:8px">
+                <button type="submit" class="logout-btn">Sign out</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="main">
+        <div class="topbar">
+            <div>
+                <div class="greeting">Manage users and roles ✨</div>
+                <div class="topbar-name">ADMIN PANEL</div>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <div class="hero-title">
+                <span class="line1">Users</span>
+                <span class="line3">Management</span>
+            </div>
+
+            <div class="users-panel">
+                <div class="users-top">
+                    <div class="users-head">System Accounts</div>
+                    <div class="users-actions">
+                        <a class="btn-back" href="/index">Back</a>
+                        <a class="btn-create" href="/admin/create">Create User</a>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th sec:authorize="hasRole('ADMIN')">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user : ${users}">
+                        <td class="id-col" th:text="${user.id}">1</td>
+                        <td class="name-col" th:text="${user.username}">admin</td>
+                        <td>
+                            <span class="role-cell"
+                                  th:text="${user.role}"
+                                  th:classappend="${user.role == 'ROLE_ADMIN'} ? ' role-admin' : ' role-user'">ROLE_USER</span>
+                        </td>
+                        <td sec:authorize="hasRole('ADMIN')">
+                            <div class="actions">
+                                <a class="btn-action edit" th:href="@{/admin/edit/{id}(id=${user.id})}">Edit</a>
+                                <a class="btn-action del" th:href="@{/admin/delete/{id}(id=${user.id})}"
+                                   onclick="return confirm('Delete this user?');">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
-    <table>
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Role</th>
-            <th sec:authorize="hasRole('ADMIN')">Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="user : ${users}">
-            <td th:text="${user.id}">1</td>
-            <td th:text="${user.username}">admin</td>
-            <td th:text="${user.role}">ROLE_USER</td>
-            <td sec:authorize="hasRole('ADMIN')">
-                <div class="actions">
-                    <a class="btn edit" th:href="@{/admin/edit/{id}(id=${user.id})}">Edit</a>
-                    <a class="btn del" th:href="@{/admin/delete/{id}(id=${user.id})}"
-                       onclick="return confirm('Delete this user?');">Delete</a>
-                </div>
-            </td>
-        </tr>
-        </tbody>
-    </table>
 </div>
+
+<div class="now-playing">
+    <div class="np-track">
+        <div class="np-thumb">🎵</div>
+        <div class="np-info"><div class="np-title">AUEN MUSIC</div><div class="np-artist">Admin mode active</div></div>
+    </div>
+    <div class="np-controls">
+        <div class="np-buttons">
+            <button class="np-btn"><svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+            <button class="np-btn play" onclick="togglePlay(this)"><svg viewBox="0 0 24 24" id="play-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+            <button class="np-btn"><svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+        </div>
+        <div class="np-progress">
+            <span class="np-time">0:00</span>
+            <div class="np-bar"><div class="np-fill" id="np-fill"></div></div>
+            <span class="np-time" style="text-align:right">0:00</span>
+        </div>
+    </div>
+    <div class="np-vol">
+        <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>
+        <div class="vol-bar"><div class="vol-fill"></div></div>
+    </div>
+</div>
+
+<script>
+    let isPlaying = false, progressInterval, progress = 0;
+    function togglePlay() {
+        isPlaying = !isPlaying;
+        const icon = document.getElementById('play-icon');
+        if (isPlaying) {
+            icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+            progressInterval = setInterval(() => {
+                progress = Math.min(100, progress + 0.3);
+                document.getElementById('np-fill').style.width = progress + '%';
+            }, 300);
+        } else {
+            icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+            clearInterval(progressInterval);
+        }
+    }
+</script>
 </body>
 </html>
 

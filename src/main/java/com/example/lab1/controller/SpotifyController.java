@@ -30,6 +30,8 @@ public class SpotifyController {
                 item.put("title", track.getName());
                 item.put("artist", track.getArtists() != null && track.getArtists().length > 0
                         ? track.getArtists()[0].getName() : "");
+                item.put("artistId", track.getArtists() != null && track.getArtists().length > 0
+                        ? track.getArtists()[0].getId() : "");
                 item.put("album", track.getAlbum() != null ? track.getAlbum().getName() : "");
                 item.put("duration", track.getDurationMs() / 1000);
                 item.put("genre", "");

@@ -59,6 +59,12 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .hero-title .line3{display:block;-webkit-text-stroke:2px var(--accent);color:transparent;}
 .sparkle{display:inline-block;color:var(--accent);margin-left:8px;animation:sparkle-spin 3s ease-in-out infinite;}
 @keyframes sparkle-spin{0%,100%{transform:scale(1) rotate(0deg);}50%{transform:scale(1.2) rotate(20deg);}}
+@keyframes fadeInOut {
+  0%{opacity:0;transform:translateY(10px);}
+  15%{opacity:1;transform:translateY(0);}
+  85%{opacity:1;}
+  100%{opacity:0;}
+}
 
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;margin-top:48px;}
 .section-title{font-size:20px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:10px;}
@@ -205,7 +211,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
       </a>
     </div>
     <div class="sidebar-bottom">
-      <div class="user-card">
+      <div class="user-card" onclick="openProfileModal()" style="cursor:pointer">
         <div class="user-avatar" sec:authentication="name" th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</div>
         <div class="user-info">
           <div class="user-name" th:text="${currentUser != null and currentUser.fullName != null ? currentUser.fullName : #authentication.name}">User</div>
@@ -409,6 +415,15 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
   </div>
 </div>
 
+<!-- PROFILE MODAL -->
+<div id="profile-overlay" onclick="closeProfileModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:9998;"></div>
+
+<div id="profile-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:9999;width:420px;max-width:95vw;max-height:90vh;overflow-y:auto;
+  background:rgba(15,5,26,.97);border:1px solid rgba(168,85,247,.3);border-radius:24px;
+  padding:32px;box-shadow:0 24px 80px rgba(0,0,0,.7);font-family:'Space Grotesk',sans-serif;color:#f8f4ff;">
+</div>
+
 <script>
 // ARTIST EXPAND / COLLAPSE
 function toggleArtistSongs(idx) {
@@ -522,6 +537,266 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// PROFILE MODAL
+function profileEsc(v){
+  return (v || '').toString()
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function closeProfileModal() {
+  document.getElementById('profile-overlay').style.display = 'none';
+  document.getElementById('profile-modal').style.display = 'none';
+}
+
+function previewProfileAvatar(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const holder = document.getElementById('pm-avatar');
+    if (holder) {
+      holder.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function openProfileModal() {
+  try {
+    const [profileRes, artistsRes, songsRes] = await Promise.all([
+      fetch('/profile/data'),
+      fetch('/profile/artists'),
+      fetch('/profile/recent-songs')
+    ]);
+
+    const profile = await profileRes.json();
+    const artists = await artistsRes.json();
+    const recentSongs = await songsRes.json();
+    if (!profileRes.ok || profile.error) {
+      throw new Error(profile.error || 'Не удалось загрузить профиль');
+    }
+
+    const songsHtml = Array.isArray(recentSongs) && recentSongs.length > 0
+      ? recentSongs.map(s => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;
+            background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:6px;">
+            <div style="width:32px;height:32px;border-radius:8px;
+              background:linear-gradient(135deg,#7c3aed,#ec4899);
+              display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🎵</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:600;white-space:nowrap;
+                overflow:hidden;text-overflow:ellipsis;">${profileEsc(s.title || '')}</div>
+              <div style="font-size:11px;color:rgba(248,244,255,.45);">${profileEsc(s.artist || '—')} · ${profileEsc(s.duration || '0:00')}</div>
+            </div>
+          </div>`)
+        .join('')
+      : '<div style="font-size:13px;color:rgba(248,244,255,.35);padding:8px 0;">No songs added yet</div>';
+
+    const genres = ['Pop','Rock','Hip-Hop','R&B','Jazz','Electronic'];
+    const selectedGenre = profile.favoriteGenre || '';
+    const selectedArtist = profile.favoriteArtist || '';
+    const initial = (profile.displayName || profile.fullName || profile.username || 'U').charAt(0).toUpperCase();
+    const avatarHtml = profile.avatarBase64
+      ? `<img src="data:image/*;base64,${profile.avatarBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : initial;
+
+    const genreOptions = genres.map(g =>
+      `<option value="${g}" ${g === selectedGenre ? 'selected' : ''}>${g}</option>`
+    ).join('');
+
+    const artistOptions = (artists || []).map(a => {
+      const name = a.name || '';
+      return `<option value="${profileEsc(name)}" ${name === selectedArtist ? 'selected' : ''}>${profileEsc(name)}</option>`;
+    }).join('');
+
+    const modal = document.getElementById('profile-modal');
+    modal.innerHTML = `
+      <button type="button" onclick="closeProfileModal()" style="position:absolute;right:16px;top:12px;background:transparent;border:none;color:#f8f4ff;font-size:24px;cursor:pointer;line-height:1">&times;</button>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:8px;">User Profile</div>
+      <form id="profile-form" style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px;">
+          <div id="pm-avatar" style="background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:50%;width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;overflow:hidden;">${avatarHtml}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${profileEsc(profile.username || '')}</div>
+            <div style="color:rgba(248,244,255,.45);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${profileEsc(profile.email || '')}</div>
+            <label style="margin-top:8px;display:inline-block;padding:8px 12px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.35);border-radius:10px;cursor:pointer;font-size:12px;">Upload avatar
+              <input id="p-avatar" type="file" name="avatarFile" accept="image/*" style="display:none" onchange="previewProfileAvatar(this)">
+            </label>
+          </div>
+        </div>
+
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);">Username</div>
+        <input id="p-displayName" name="displayName" value="${profileEsc(profile.username || '')}" placeholder="Username"
+               style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:8px;">🎵 Recent Music</div>
+        <div>${songsHtml}</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:6px;">Favorite Genre</div>
+            <select id="p-genre" name="favoriteGenre" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none;">
+              <option value="">Select</option>
+              ${genreOptions}
+            </select>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:6px;">Favorite Artist</div>
+            <select id="p-artist" name="favoriteArtist" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none;">
+              <option value="">Select</option>
+              ${artistOptions}
+            </select>
+          </div>
+        </div>
+
+        <details style="margin-top:4px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;">
+          <summary style="cursor:pointer;font-size:12px;font-weight:700;color:#c084fc;">Change Password</summary>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+            <input id="p-oldPassword" type="password" name="oldPassword" placeholder="Old password" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+            <input id="p-newPassword" type="password" name="newPassword" placeholder="New password" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+            <input id="p-confirmPassword" type="password" name="confirmPassword" placeholder="Confirm password" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+          </div>
+        </details>
+
+        <div id="profile-error" style="display:none;color:#f87171;font-size:13px;"></div>
+
+        <button type="submit" style="margin-top:6px;background:linear-gradient(135deg,#7c3aed,#ec4899);border:none;border-radius:12px;padding:11px 16px;color:#fff;font-weight:700;cursor:pointer;">Save</button>
+      </form>
+    `;
+
+    document.getElementById('profile-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveProfile();
+    });
+    document.getElementById('profile-overlay').style.display = 'block';
+    modal.style.display = 'block';
+  } catch (err) {
+    showToast(err.message || 'Ошибка профиля', true);
+  }
+}
+
+async function saveProfile() {
+  const formData = new FormData();
+
+  formData.append('newUsername', document.getElementById('p-displayName')?.value || '');
+  formData.append('favoriteGenre', document.getElementById('p-genre')?.value || '');
+  formData.append('favoriteArtist', document.getElementById('p-artist')?.value || '');
+
+  const oldPass = document.getElementById('p-oldPassword')?.value || '';
+  const newPass = document.getElementById('p-newPassword')?.value || '';
+  const confirmPass = document.getElementById('p-confirmPassword')?.value || '';
+
+  if (newPass) {
+    formData.append('oldPassword', oldPass);
+    formData.append('newPassword', newPass);
+    formData.append('confirmPassword', confirmPass);
+  }
+
+  const avatarFile = document.getElementById('p-avatar')?.files[0];
+  if (avatarFile) {
+    formData.append('avatarFile', avatarFile);
+  }
+
+  try {
+    const res = await fetch('/profile/update', {
+      method: 'POST',
+      body: formData
+    });
+
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Not JSON response:', text);
+      showToast('Ошибка сервера', true);
+      return;
+    }
+
+    const data = await res.json();
+
+    if (data.success) {
+      // Update sidebar immediately
+      updateSidebarAvatar(data.avatarBase64, data.username);
+
+      // Update username in sidebar
+      const nameEl = document.querySelector('.user-name');
+      if (nameEl && data.username) nameEl.textContent = data.username;
+
+      showToast('Профиль сохранён ✓');
+      closeProfileModal();
+    } else {
+      showToast('Ошибка: ' + data.error, true);
+    }
+  } catch (e) {
+    console.error(e);
+    showToast('Ошибка соединения', true);
+  }
+}
+
+function updateSidebarProfile(data) {
+  const card = document.querySelector('.user-card');
+  if (!card) return;
+  const nameEl = card.querySelector('.user-name');
+  const roleEl = card.querySelector('.user-role');
+
+  const username = data.username || '';
+  const name = data.username || 'User';
+  const email = data.email || 'Music Fan';
+
+  updateSidebarAvatar(data.avatarBase64, username);
+  if (nameEl) nameEl.textContent = name;
+  if (roleEl) roleEl.textContent = email;
+}
+
+// Load avatar on page start
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch('/profile/data');
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) return;
+    const data = await res.json();
+    updateSidebarAvatar(data.avatarBase64, data.username);
+  } catch(e) {
+    console.log('Avatar load error:', e);
+  }
+});
+
+function updateSidebarAvatar(avatarBase64, username) {
+  const avatarEl = document.querySelector('.user-avatar');
+  if (!avatarEl) return;
+
+  if (avatarBase64 && avatarBase64.length > 0) {
+    avatarEl.innerHTML = `
+      <img src="${avatarBase64}"
+        style="width:100%;height:100%;border-radius:10px;
+               object-fit:cover;display:block;">`;
+    avatarEl.style.padding = '0';
+    avatarEl.style.overflow = 'hidden';
+  } else {
+    avatarEl.innerHTML = username
+      ? username.charAt(0).toUpperCase()
+      : 'U';
+  }
+}
+
+function showToast(message, isError = false) {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.cssText = `
+    position:fixed;bottom:90px;right:24px;z-index:99999;
+    padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;
+    font-family:'Space Grotesk',sans-serif;
+    background:${isError ? 'rgba(239,68,68,.9)' : 'rgba(45,212,191,.9)'};
+    color:white;box-shadow:0 8px 24px rgba(0,0,0,.4);
+    animation:fadeInOut 2.5s ease forwards;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
 </script>
 </body>
 </html>

@@ -24,6 +24,16 @@ public class User {
     @Column(unique = true)
     private String email;
 
+    @Column(length = 500)
+    private String avatarBase64;
+
+    private String favoriteGenre;
+
+    @Column
+    private String favoriteArtist;
+
+    private String displayName;
+
     public User() {}
 
     public User(String username, String password, String role) {
@@ -49,4 +59,16 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getAvatarBase64() { return avatarBase64; }
+    public void setAvatarBase64(String avatarBase64) { this.avatarBase64 = avatarBase64; }
+
+    public String getFavoriteGenre() { return favoriteGenre; }
+    public void setFavoriteGenre(String favoriteGenre) { this.favoriteGenre = favoriteGenre; }
+
+    public String getFavoriteArtist() { return favoriteArtist; }
+    public void setFavoriteArtist(String favoriteArtist) { this.favoriteArtist = favoriteArtist; }
+
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
 }

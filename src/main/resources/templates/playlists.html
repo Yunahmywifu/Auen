@@ -4,6 +4,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 <title>AUEN — Playlists</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -53,6 +55,12 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .hero-title .line3{display:block;-webkit-text-stroke:2px var(--lime);color:transparent;}
 .sparkle{display:inline-block;margin-left:8px;animation:sparkle-spin 3s ease-in-out infinite;}
 @keyframes sparkle-spin{0%,100%{transform:scale(1) rotate(0deg);}50%{transform:scale(1.2) rotate(20deg);}}
+@keyframes fadeInOut {
+  0%{opacity:0;transform:translateY(10px);}
+  15%{opacity:1;transform:translateY(0);}
+  85%{opacity:1;}
+  100%{opacity:0;}
+}
 .quick-add{background:var(--panel);border:1px solid rgba(163,230,53,.2);border-radius:20px;padding:28px;margin-bottom:36px;position:relative;overflow:hidden;}
 .quick-add::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(163,230,53,.1),transparent 70%);}
 .qa-title{font-size:17px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
@@ -89,6 +97,13 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .add-song-btn:hover{background:rgba(163,230,53,.25);}
 .del-playlist-btn{padding:8px 14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:10px;color:#f87171;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none;white-space:nowrap;}
 .del-playlist-btn:hover{background:rgba(239,68,68,.25);}
+.song-list-container{max-height:260px;overflow:auto;padding-right:4px;}
+.sort-btn{padding:5px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:rgba(248,244,255,.6);font-size:11px;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s;}
+.sort-btn:hover{background:rgba(255,255,255,.12);}
+.pl-cover-area{position:relative;cursor:pointer;margin-bottom:12px;}
+.pl-cover-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;}
+.pl-cover-area:hover .pl-cover-overlay{opacity:1;}
+[contenteditable]:focus{outline:2px solid rgba(168,85,247,.5);border-radius:4px;padding:2px 4px;}
 .empty-state{text-align:center;padding:80px 40px;background:var(--panel);border:1px solid var(--border);border-radius:20px;}
 .empty-state .emoji{font-size:48px;margin-bottom:16px;}
 .empty-state h3{font-size:20px;font-weight:700;margin-bottom:8px;}
@@ -115,6 +130,50 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .vol-fill{height:100%;width:70%;background:var(--accent);border-radius:2px;}
 ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(168,85,247,.3);border-radius:3px;}
 @media(max-width:800px){.sidebar{width:70px;padding:20px 0;}.logo-text,.nav-item span,.user-info,.nav-label{display:none;}.nav-item{justify-content:center;padding:12px;}.now-playing{left:70px;}.topbar,.page-content{padding-left:24px;padding-right:24px;}}
+/* Modal redesign for playlist details */
+.modal-overlay{position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;width:100vw !important;height:100vh !important;z-index:9999 !important;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:flex-start;padding-top:40px;overflow-y:auto;}
+.modal-panel{background:rgba(12, 3, 22, 0.98) !important;border:1px solid rgba(163, 230, 53, 0.3) !important;border-radius:20px !important;padding:0 !important;overflow:hidden !important;position:relative !important;z-index:10000 !important;flex-shrink:0 !important;top:auto;left:auto;transform:none;margin:0 auto;width:min(680px, calc(100vw - 40px));max-height:calc(100vh - 80px);overflow-y:auto;box-shadow:0 30px 90px rgba(0,0,0,.6);}
+.pl-modal-header{display:flex;gap:16px;padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.08);position:relative;}
+.pl-cover{width:110px;height:110px;border-radius:14px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-size:42px;}
+.pl-label{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--lime);margin-bottom:2px;}
+.pl-title{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:.9;letter-spacing:1px;max-width:440px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pl-sub{font-size:13px;color:var(--muted);margin-top:6px;max-width:460px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pl-stats{display:flex;gap:22px;margin-top:10px;}
+.pl-stat-lbl{font-size:10px;color:rgba(248,244,255,.45);letter-spacing:1.4px;text-transform:uppercase;}
+.pl-stat-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--lime);line-height:.85;}
+.pl-close{position:absolute;right:14px;top:12px;width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;font-size:19px;}
+.pl-modal-toolbar{padding:14px 20px 10px;border-bottom:1px solid rgba(255,255,255,.06);}
+.pl-search-wrap{position:relative;}
+.pl-search{width:100%;padding:10px 14px 10px 38px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#f8f4ff;outline:none;font-family:'Space Grotesk',sans-serif;}
+.pl-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(248,244,255,.5);font-size:14px;}
+.pl-toolbar-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;}
+.pl-sort-group{display:flex;gap:6px;flex-wrap:wrap;}
+.pl-sort-btn{padding:6px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:rgba(248,244,255,.7);font-size:11px;font-weight:700;cursor:pointer;}
+.pl-shuffle{margin-left:auto;padding:7px 12px;border-radius:10px;border:none;background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;font-weight:700;font-size:12px;cursor:pointer;}
+.pl-modal-body{max-height:340px;overflow:auto;padding:10px 20px;}
+.pl-song-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:6px;transition:background .15s;}
+.pl-song-row:hover{background:rgba(163,230,53,.08);}
+.pl-drag{cursor:grab;color:rgba(255,255,255,.35);font-size:16px;}
+.pl-song-cover{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#7c3aed,#ec4899);font-size:14px;flex-shrink:0;}
+.pl-song-text{flex:1;min-width:0;}
+.pl-song-title{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pl-song-meta{font-size:11px;color:rgba(248,244,255,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pl-song-dur{font-family:'DM Sans',monospace;font-size:12px;color:rgba(248,244,255,.7);}
+.pl-remove{width:24px;height:24px;border-radius:7px;border:1px solid rgba(239,68,68,.26);background:rgba(239,68,68,.13);color:#f87171;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.pl-modal-footer{padding:12px 20px 18px;border-top:1px solid rgba(255,255,255,.08);}
+.pl-add-row{display:flex;gap:8px;}
+.pl-add-row select{flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#f8f4ff;font-family:'Space Grotesk',sans-serif;}
+.pl-add-row button{padding:9px 13px;border-radius:10px;border:1px solid rgba(163,230,53,.35);background:rgba(163,230,53,.16);color:var(--lime);font-weight:700;cursor:pointer;}
+.pl-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.pl-actions button,.pl-actions a{text-decoration:none;padding:7px 11px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid transparent;cursor:pointer;}
+.pl-btn-genre{background:rgba(163,230,53,.15);border-color:rgba(163,230,53,.3);color:#a3e635;}
+.pl-btn-recs{background:rgba(45,212,191,.15);border-color:rgba(45,212,191,.3);color:#2dd4bf;}
+.pl-btn-share{background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.3);color:#c084fc;}
+.pl-btn-vis{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#f8f4ff;}
+.pl-btn-del{background:rgba(239,68,68,.11);border-color:rgba(239,68,68,.24);color:#f87171;}
+.pl-recs{display:none;margin-top:10px;padding:10px;border-radius:12px;border:1px solid rgba(45,212,191,.25);background:rgba(45,212,191,.07);max-height:280px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(163,230,53,.3) transparent;}
+.pl-recs::-webkit-scrollbar{width:4px;}
+.pl-recs::-webkit-scrollbar-thumb{background:rgba(163,230,53,.3);border-radius:2px;}
 </style>
 </head>
 <body>
@@ -151,11 +210,11 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
       </a>
     </div>
     <div class="sidebar-bottom">
-      <div class="user-card">
+      <div class="user-card" onclick="openProfileModal()" style="cursor:pointer">
         <div class="user-avatar" th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</div>
         <div class="user-info">
           <div class="user-name" sec:authentication="name">User</div>
-          <div class="user-role">Music Fan</div>
+          <div class="user-role" th:text="${currentUser != null and currentUser.email != null ? currentUser.email : 'Music Fan'}">Music Fan</div>
         </div>
       </div>
       <form th:action="@{/logout}" method="post" style="margin-top:8px">
@@ -197,15 +256,22 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
         <p>Create your first playlist above!</p>
       </div>
       <div class="playlists-grid" th:unless="${#lists.isEmpty(playlists)}">
-        <div class="playlist-card" th:each="playlist : ${playlists}"
-             th:style="'border-left: 4px solid var(--lime)'">
-          <div class="playlist-name" th:text="${playlist.name}">Playlist Name</div>
-          <div class="playlist-meta"
-               th:text="${(playlist.description != null ? playlist.description : 'No description') + (playlist.createdBy != null ? ' · by ' + playlist.createdBy : '')}">
-            Description · by Creator
+        <div class="playlist-card"
+             th:each="playlist : ${playlists}"
+             th:style="'border-left: 4px solid var(--lime)'"
+             th:attr="data-pl-id=${playlist.id}"
+             th:onclick="|openPlaylistModal(${playlist.id}, event)|">
+          <div class="pl-cover-area">
+            <img th:if="${playlist.coverImage != null and !playlist.coverImage.isEmpty()}"
+                 th:src="${playlist.coverImage}"
+                 style="width:100%;height:140px;object-fit:cover;border-radius:12px;" alt="Cover">
+            <div th:unless="${playlist.coverImage != null and !playlist.coverImage.isEmpty()}"
+                 style="width:100%;height:140px;background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:48px;">♬</div>
           </div>
 
-          <!-- Stats -->
+          <div class="playlist-name" th:text="${playlist.name}">Playlist</div>
+          <div class="playlist-meta" th:text="${(playlist.description != null ? playlist.description : 'No description') + ' · by ' + (playlist.createdBy != null ? playlist.createdBy : 'Unknown')}"></div>
+
           <div class="playlist-stats">
             <div>
               <div class="pstat-lbl">Tracks</div>
@@ -213,41 +279,12 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
             </div>
             <div>
               <div class="pstat-lbl">Runtime</div>
-              <div class="pstat-val" th:text="${playlist.formattedTotalDuration}">0:00</div>
+              <div class="pstat-val" th:text="${playlist.formattedTotalDuration}">0m 00s</div>
             </div>
-          </div>
-
-          <!-- Song list -->
-          <div th:each="song : ${playlist.songs}" class="playlist-song-item">
-            <div class="psong-thumb">🎵</div>
-            <div class="psong-info">
-              <div class="psong-title" th:text="${song.title}">Song Title</div>
-              <div class="psong-artist"
-                   th:text="${(song.artist != null ? song.artist.name : '—') + ' · ' + song.formattedDuration}">
-                Artist · Duration
-              </div>
+            <div>
+              <div class="pstat-lbl">Visibility</div>
+              <div class="pstat-val" style="font-size:14px;" th:text="${playlist.public ? '🌍 Public' : '🔒 Private'}">🌍</div>
             </div>
-            <a th:href="@{/playlists/removeSong(playlistId=${playlist.id},songId=${song.id})}"
-               class="psong-remove" title="Remove from playlist">
-              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </a>
-          </div>
-
-          <!-- Add song + Delete playlist -->
-          <div class="playlist-actions">
-            <form th:action="@{/playlists/addSong}" method="post" class="add-song-form">
-              <input type="hidden" name="playlistId" th:value="${playlist.id}">
-              <select class="add-song-select" name="songId">
-                <option value="">Add a song...</option>
-                <option th:each="song : ${availableSongs}"
-                        th:value="${song.id}"
-                        th:text="${song.title + (song.artist != null ? ' — ' + song.artist.name : '')}">Song</option>
-              </select>
-              <button type="submit" class="add-song-btn">＋ Add</button>
-            </form>
-            <a th:href="@{/playlists/delete/{id}(id=${playlist.id})}"
-               class="del-playlist-btn"
-               onclick="return confirm('Delete this playlist?')">🗑 Delete</a>
           </div>
         </div>
       </div>
@@ -277,9 +314,1033 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
     <div class="vol-bar"><div class="vol-fill"></div></div>
   </div>
 </div>
+<!-- PROFILE MODAL -->
+<div id="profile-overlay" onclick="closeProfileModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:9998;"></div>
+
+<div id="profile-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:9999;width:420px;max-width:95vw;max-height:90vh;overflow-y:auto;
+  background:rgba(15,5,26,.97);border:1px solid rgba(168,85,247,.3);border-radius:24px;
+  padding:32px;box-shadow:0 24px 80px rgba(0,0,0,.7);font-family:'Space Grotesk',sans-serif;color:#f8f4ff;">
+</div>
+
+<!-- PLAYLIST DETAIL MODAL -->
+<div id="playlist-modal" class="modal-overlay" onclick="closePlaylistModal()">
+  <div id="playlist-modal-panel" class="modal-panel" aria-hidden="true" onclick="event.stopPropagation()"></div>
+</div>
+
+<script th:inline="javascript">
+const ALL_PLAYLISTS = /*[[${playlists}]]*/ [];
+const availableSongsModalData = /*[[${availableSongs}]]*/ [];
+console.log('ALL_PLAYLISTS:', ALL_PLAYLISTS);
+</script>
+
 <script>
 let isPlaying=false,progressInterval,progress=0;
 function togglePlay(btn){isPlaying=!isPlaying;const icon=document.getElementById('play-icon');if(isPlaying){icon.innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';progressInterval=setInterval(()=>{progress=Math.min(100,progress+.3);document.getElementById('np-fill').style.width=progress+'%';},300);}else{icon.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';clearInterval(progressInterval);}}
+
+let currentPlaylistId = null;
+let modalSongs = [];
+let currentSongs = [];
+let draggedSongId = null;
+let previewAudio = null;
+let recAudio = null;
+let recPlayBtn = null;
+const sortState = {name:true, artist:true, duration:true};
+
+function openPlaylistModal(playlistId, event) {
+  if (event) {
+    const blocked = event.target.closest('a,button,input,select,textarea,label,form,[contenteditable]');
+    if (blocked) return;
+  }
+
+  const rawPlaylist = ALL_PLAYLISTS.find(p => Number(p.id) === Number(playlistId));
+  const playlist = normalizePlaylist(rawPlaylist);
+  console.log('Opening playlist:', playlistId, playlist ? playlist.name : '');
+  console.log('Overlay element:', document.getElementById('playlist-modal'));
+  if (!playlist) return;
+
+  currentPlaylistId = playlist.id;
+  modalSongs = [...(playlist.songs || [])];
+  currentSongs = [...modalSongs];
+  renderPlaylistModal(playlist);
+
+  const overlay = document.getElementById('playlist-modal');
+  const panel = document.getElementById('playlist-modal-panel');
+  document.body.style.overflow = 'hidden';
+  const mainEl = document.querySelector('.main');
+  if (mainEl) mainEl.style.overflow = 'hidden';
+  overlay.style.cssText += '; display: flex !important;';
+  panel.style.display = 'block';
+}
+
+function closePlaylistModal() {
+  const overlay = document.getElementById('playlist-modal');
+  const panel = document.getElementById('playlist-modal-panel');
+  overlay.style.display = 'none';
+  panel.style.display = 'none';
+  document.body.style.overflow = '';
+  const mainEl = document.querySelector('.main');
+  if (mainEl) mainEl.style.overflow = '';
+  panel.innerHTML = '';
+  currentPlaylistId = null;
+  modalSongs = [];
+  currentSongs = [];
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closePlaylistModal();
+});
+
+function renderPlaylistModal(playlist) {
+  const panel = document.getElementById('playlist-modal-panel');
+  panel.innerHTML = `
+    <div class="pl-modal-header">
+      <div class="pl-cover">${playlist.coverImage ? `<img src="${playlist.coverImage}" style="width:100%;height:100%;object-fit:cover;">` : '♬'}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="pl-label">PLAYLIST</div>
+        <div class="pl-title">${esc(playlist.name || 'Playlist')}</div>
+        <div class="pl-sub">${esc(playlist.description || 'No description')} · by ${esc(playlist.createdBy || 'Unknown')}</div>
+        <div class="pl-stats">
+          <div><div class="pl-stat-lbl">Tracks</div><div class="pl-stat-val">${modalSongs.length}</div></div>
+          <div><div class="pl-stat-lbl">Runtime</div><div class="pl-stat-val">${esc(playlist.formattedTotalDuration || '0m 00s')}</div></div>
+          <div><div class="pl-stat-lbl">Visibility</div><div class="pl-stat-val" style="font-size:22px;">${playlist.isPublic ? '🌍' : '🔒'}</div></div>
+        </div>
+      </div>
+      <button type="button" class="pl-close" onclick="closePlaylistModal()">✕</button>
+    </div>
+
+    <div class="pl-modal-toolbar">
+      <div class="pl-search-wrap">
+        <span class="pl-search-icon">🔎</span>
+        <input id="pl-modal-search" class="pl-search" type="text" placeholder="Search songs..." oninput="filterModalSongs(this.value)">
+      </div>
+      <div class="pl-toolbar-row">
+        <div class="pl-sort-group">
+          <button class="pl-sort-btn" id="sort-name" onclick="sortModalSongs('name')">↑ Name</button>
+          <button class="pl-sort-btn" id="sort-artist" onclick="sortModalSongs('artist')">↑ Artist</button>
+          <button class="pl-sort-btn" id="sort-duration" onclick="sortModalSongs('duration')">↑ Duration</button>
+        </div>
+        <button class="pl-shuffle" onclick="shuffleModalSongs()">🔀 Shuffle</button>
+      </div>
+    </div>
+
+    <div id="pl-modal-list" class="pl-modal-body"></div>
+
+    <div class="pl-modal-footer">
+      <div class="pl-add-row">
+        <select id="modal-song-select" name="songId" required>
+          <option value="">Add a song...</option>
+          ${availableSongsModalData.map(s => {
+            const artistName = s.artist && s.artist.name ? s.artist.name : (typeof s.artist === 'string' ? s.artist : '');
+            const genreText = s.genre ? ' · ' + s.genre : '';
+            return `<option value="${s.id}">${esc(s.title)}${artistName ? ' — ' + esc(artistName) : ''}${esc(genreText)}</option>`;
+          }).join('')}
+        </select>
+        <button type="button" onclick="addSongFromSelect()">＋ Add</button>
+      </div>
+
+      <div class="pl-actions">
+        <button class="pl-btn-genre" onclick="autoByGenre(this)" type="button">🎸 Auto by genre</button>
+        <button class="pl-btn-recs ftr-rec" onclick="getRecommendations()" type="button">✨ Recommendations</button>
+        <button class="pl-btn-share" onclick="sharePlaylist('${playlist.shareToken || ''}', ${playlist.isPublic ? 'true' : 'false'})" type="button">🔗 Share</button>
+        <button class="pl-btn-vis" id="pl-vis-btn" onclick="toggleVisibility(${playlist.id}, this)" type="button"><span>${playlist.isPublic ? '🌍 Public' : '🔒 Private'}</span></button>
+        <a class="pl-btn-del" href="/playlists/delete/${playlist.id}" onclick="return confirm('Delete this playlist?')">🗑 Delete</a>
+      </div>
+
+      <div id="modal-recs" class="pl-recs"></div>
+    </div>
+  `;
+
+  renderModalSongList(modalSongs);
+}
+
+function renderModalSongList(songs) {
+  const list = document.getElementById('pl-modal-list');
+  if (!list) return;
+
+  list.innerHTML = songs.map(song => `
+    <div class="pl-song-row" draggable="true" data-song-id="${song.id}" data-title="${esc(song.title || '')}" data-artist="${esc(song.artist || '')}" data-duration="${song.duration || 0}"
+         ondragstart="dragModalSong(event, ${song.id})" ondragover="event.preventDefault()" ondrop="dropModalSong(event, ${song.id})">
+      <div class="pl-drag">⠿</div>
+      <div class="pl-song-cover">🎵</div>
+      <div class="pl-song-text">
+        <div class="pl-song-title">${esc(song.title || '')}</div>
+        <div class="pl-song-meta">${esc(song.artist || '—')} · ${esc(song.album || 'Single')}</div>
+      </div>
+      <div class="pl-song-dur">${formatDuration(song.duration)}</div>
+      <a class="pl-remove" href="/playlists/removeSong?playlistId=${currentPlaylistId}&songId=${song.id}">✕</a>
+    </div>
+  `).join('');
+}
+
+function filterModalSongs(query) {
+  const q = (query || '').toLowerCase();
+  const filtered = modalSongs.filter(song => {
+    return !q ||
+      (song.title || '').toLowerCase().includes(q) ||
+      (song.artist || '').toLowerCase().includes(q) ||
+      (song.album || '').toLowerCase().includes(q);
+  });
+  renderModalSongList(filtered);
+}
+
+function sortModalSongs(by) {
+  const asc = sortState[by];
+  const sign = asc ? 1 : -1;
+  modalSongs.sort((a, b) => {
+    if (by === 'duration') return ((a.duration || 0) - (b.duration || 0)) * sign;
+    const av = ((by === 'name' ? a.title : a.artist) || '').toLowerCase();
+    const bv = ((by === 'name' ? b.title : b.artist) || '').toLowerCase();
+    return av.localeCompare(bv) * sign;
+  });
+  sortState[by] = !asc;
+  const btn = document.getElementById('sort-' + by);
+  if (btn) btn.textContent = `${asc ? '↑' : '↓'} ${by.charAt(0).toUpperCase() + by.slice(1)}`;
+  filterModalSongs(document.getElementById('pl-modal-search')?.value || '');
+}
+
+function shuffleModalSongs() {
+  for (let i = modalSongs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [modalSongs[i], modalSongs[j]] = [modalSongs[j], modalSongs[i]];
+  }
+  filterModalSongs(document.getElementById('pl-modal-search')?.value || '');
+}
+
+function dragModalSong(event, songId) {
+  draggedSongId = Number(songId);
+  event.dataTransfer.effectAllowed = 'move';
+}
+
+function dropModalSong(event, targetSongId) {
+  event.preventDefault();
+  if (!draggedSongId || draggedSongId === targetSongId) return;
+  const from = modalSongs.findIndex(s => Number(s.id) === draggedSongId);
+  const to = modalSongs.findIndex(s => Number(s.id) === Number(targetSongId));
+  if (from < 0 || to < 0) return;
+  const [moved] = modalSongs.splice(from, 1);
+  modalSongs.splice(to, 0, moved);
+  filterModalSongs(document.getElementById('pl-modal-search')?.value || '');
+}
+
+function formatDuration(seconds) {
+  const sec = Number(seconds || 0);
+  const m = Math.floor(sec / 60);
+  const s = String(sec % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function shufflePlaylist(playlistId) {
+  fetch('/api/playlists/' + playlistId + '/shuffle', {method: 'POST'})
+    .then(() => {
+      const rawPlaylist = ALL_PLAYLISTS.find(p => Number(p.id) === Number(playlistId));
+      const pl = normalizePlaylist(rawPlaylist);
+      if (pl && Array.isArray(pl.songs)) {
+        modalSongs = [...pl.songs];
+        shuffleModalSongs();
+      }
+    });
+}
+
+function normalizePlaylist(rawPlaylist) {
+  if (!rawPlaylist) return null;
+  const songs = Array.isArray(rawPlaylist.songs) ? rawPlaylist.songs.map(song => ({
+    id: song.id,
+    title: song.title || '',
+    album: song.album || '',
+    genre: song.genre || '',
+    duration: Number(song.duration || 0),
+    artist: song.artist && song.artist.name ? song.artist.name : (typeof song.artist === 'string' ? song.artist : '—')
+  })) : [];
+
+  return {
+    id: rawPlaylist.id,
+    name: rawPlaylist.name || 'Playlist',
+    description: rawPlaylist.description || '',
+    createdBy: rawPlaylist.createdBy || 'Unknown',
+    coverImage: rawPlaylist.coverImage || '',
+    isPublic: rawPlaylist.public === true || rawPlaylist.isPublic === true,
+    shareToken: rawPlaylist.shareToken || '',
+    formattedTotalDuration: rawPlaylist.formattedTotalDuration || formatDuration(songs.reduce((acc, s) => acc + Number(s.duration || 0), 0)),
+    songs
+  };
+}
+
+function sortPlaylist(playlistId, by) {
+  if (Number(playlistId) === Number(currentPlaylistId)) {
+    sortModalSongs(by);
+  }
+}
+
+function searchInPlaylist(playlistId, query) {
+  if (Number(playlistId) === Number(currentPlaylistId)) {
+    filterModalSongs(query);
+  }
+}
+
+function dropSong(event, playlistId) {
+  if (Number(playlistId) === Number(currentPlaylistId)) {
+    const target = event.target.closest('[data-song-id]');
+    if (target) dropModalSong(event, Number(target.dataset.songId));
+  }
+}
+
+function dragSong(event, songId) {
+  dragModalSong(event, songId);
+}
+
+async function getRecommendations() {
+  if (!currentPlaylistId) return;
+
+  const btn = document.querySelector('.ftr-rec');
+  if (!btn) return;
+  btn.textContent = '⏳ Loading...';
+  btn.disabled = true;
+
+  const artists = [...new Set(
+    currentSongs
+      .filter(s => s && s.artist)
+      .map(s => typeof s.artist === 'string' ? s.artist : (s.artist?.name || ''))
+      .filter(Boolean)
+  )].slice(0, 3);
+
+  const genres = [...new Set(
+    currentSongs
+      .filter(s => s && s.genre)
+      .map(s => s.genre)
+      .filter(Boolean)
+  )].slice(0, 2);
+
+  const query = artists.length > 0
+    ? artists.join(' OR ')
+    : genres.length > 0
+      ? genres.join(' ')
+      : 'top hits';
+
+  console.log('Spotify query:', query);
+
+  try {
+    const res = await fetch('/api/spotify/search/tracks?q=' + encodeURIComponent(query));
+    const data = await res.json();
+    console.log('Spotify results:', data);
+    showRecommendations(data);
+  } catch (e) {
+    showToast('❌ Spotify error: ' + e.message, true);
+  } finally {
+    btn.textContent = '✨ Recommendations';
+    btn.disabled = false;
+  }
+}
+
+function showRecommendations(tracks) {
+  const existing = document.getElementById('rec-panel');
+  if (existing) existing.remove();
+
+  if (!tracks || tracks.length === 0) {
+    showToast('No recommendations found', true);
+    return;
+  }
+
+  const currentTitles = currentSongs.map(s => (s.title || '').toLowerCase());
+  const filtered = tracks.filter(t => !currentTitles.includes((t.title || '').toLowerCase()));
+
+  const panel = document.createElement('div');
+  panel.id = 'rec-panel';
+  panel.style.cssText = `
+    border-top: 1px solid rgba(45,212,191,.2);
+    padding: 14px 24px;
+    background: rgba(45,212,191,.04);
+    flex-shrink: 0;
+  `;
+
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#2dd4bf;display:flex;align-items:center;gap:6px;">
+        ✨ Spotify Recommendations
+        <span style="font-size:11px;color:rgba(248,244,255,.4);font-weight:400;">${filtered.length} tracks</span>
+      </div>
+      <button onclick="document.getElementById('rec-panel').remove()"
+        style="background:none;border:none;color:rgba(248,244,255,.4);cursor:pointer;font-size:18px;">✕</button>
+    </div>
+    <div id="rec-list" style="
+      max-height: 260px;
+      overflow-y: auto;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(45,212,191,.3) transparent;
+    ">
+      ${filtered.map(track => {
+        const dur = Math.floor((track.duration || 0) / 60) + ':' + String((track.duration || 0) % 60).padStart(2, '0');
+        const hasPreview = !!(track.preview && track.preview !== 'null');
+        const safePreview = String(track.preview || '').replace(/'/g, "\\'");
+        const safeTitle = String(track.title || '').replace(/'/g, "\\'");
+        const safeArtist = String(track.artist || '').replace(/'/g, "\\'");
+        const safeAlbum = String(track.album || '').replace(/'/g, "\\'");
+        const safeGenre = String(track.genre || '').replace(/'/g, "\\'");
+        return `
+          <div style="
+            display:flex;align-items:center;gap:10px;
+            padding:9px 12px;border-radius:10px;
+            background:rgba(255,255,255,.03);
+            border:1px solid rgba(255,255,255,.06);
+            transition:background .15s;
+          "
+          onmouseover="this.style.background='rgba(45,212,191,.08)'"
+          onmouseout="this.style.background='rgba(255,255,255,.03)'">
+
+            ${track.image
+              ? `<img src="${escHtml(track.image)}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;">`
+              : `<div style="width:38px;height:38px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🎵</div>`
+            }
+
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                ${escHtml(track.title || '')}
+              </div>
+              <div style="font-size:11px;color:rgba(248,244,255,.45);margin-top:2px;">
+                ${escHtml(track.artist || '')} · ${dur}
+              </div>
+            </div>
+
+            ${hasPreview ? `
+            <button onclick="playSpotifyPreview('${safePreview}','${safeTitle}','${safeArtist}',this)"
+              style="width:30px;height:30px;border-radius:50%;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.3);color:#a855f7;cursor:pointer;font-size:12px;flex-shrink:0;">▶</button>
+            ` : ''}
+
+            <button onclick="addSpotifySongToPlaylist(this, '${safeTitle}', '${safeArtist}', '${safeAlbum}', ${track.duration || 0}, '${safeGenre}')"
+              style="
+                padding:6px 12px;border-radius:8px;border:none;
+                background:linear-gradient(135deg,#065f46,#10b981);
+                color:white;font-size:12px;font-weight:700;
+                cursor:pointer;white-space:nowrap;flex-shrink:0;
+                font-family:'Space Grotesk',sans-serif;
+                transition:opacity .2s;
+              "
+              onmouseover="this.style.opacity='.8'"
+              onmouseout="this.style.opacity='1'">
+              + Add
+            </button>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  const footer = document.querySelector('.pl-modal-footer');
+  if (footer && footer.parentNode) {
+    footer.parentNode.insertBefore(panel, footer);
+  }
+}
+
+async function addSpotifySongToPlaylist(btn, title, artist, album, duration, genre) {
+  btn.textContent = '⏳';
+  btn.disabled = true;
+
+  const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+  const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+  try {
+    const artistsRes = await fetch('/api/artists?name=' + encodeURIComponent(artist));
+    const artistsData = await artistsRes.json();
+
+    const songPayload = {
+      title: title,
+      album: album,
+      duration: duration,
+      genre: genre || 'Pop',
+      artist: Array.isArray(artistsData) && artistsData.length > 0 ? { id: artistsData[0].id } : null
+    };
+
+    const saveRes = await fetch('/api/songs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        [csrfHeader]: csrfToken
+      },
+      body: JSON.stringify(songPayload),
+      credentials: 'same-origin'
+    });
+
+    if (!saveRes.ok) throw new Error('Failed to save song: ' + saveRes.status);
+
+    const savedSong = await saveRes.json();
+    console.log('Song saved to DB:', savedSong);
+
+    const addRes = await fetch('/playlists/addSong', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        [csrfHeader]: csrfToken
+      },
+      body: `playlistId=${currentPlaylistId}&songId=${savedSong.id}`,
+      credentials: 'same-origin'
+    });
+
+    if (addRes.ok || addRes.status === 302) {
+      btn.textContent = '✅';
+      btn.style.background = 'linear-gradient(135deg,#065f46,#10b981)';
+      showToast('✅ "' + title + '" added to playlist!');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      throw new Error('Failed to add to playlist: ' + addRes.status);
+    }
+
+  } catch (e) {
+    console.error('addSpotifySongToPlaylist error:', e);
+    btn.textContent = '❌';
+    btn.disabled = false;
+    showToast('❌ Error: ' + e.message, true);
+  }
+}
+
+function playSpotifyPreview(url, title, artist, btnEl) {
+  if (!url) { showToast('No preview available', true); return; }
+
+  if (recPlayBtn && recPlayBtn !== btnEl) {
+    recPlayBtn.textContent = '▶';
+    recPlayBtn.style.background = 'rgba(168,85,247,.2)';
+  }
+
+  if (!recAudio) recAudio = new Audio();
+
+  if (recAudio.src === url && !recAudio.paused) {
+    recAudio.pause();
+    btnEl.textContent = '▶';
+    recPlayBtn = null;
+    return;
+  }
+
+  recAudio.src = url;
+  recAudio.play().catch(() => showToast('Preview unavailable', true));
+  btnEl.textContent = '⏸';
+  btnEl.style.background = 'rgba(45,212,191,.3)';
+  recPlayBtn = btnEl;
+  recAudio.onended = () => {
+    btnEl.textContent = '▶';
+    btnEl.style.background = 'rgba(168,85,247,.2)';
+    recPlayBtn = null;
+  };
+}
+
+function escHtml(value) {
+  return esc(value);
+}
+
+async function addRecommendedSong(songId, playlistId) {
+  console.log('=== ADD RECOMMENDED SONG ===');
+  console.log('songId:', songId);
+  console.log('playlistId:', playlistId);
+
+  const csrfMeta = document.querySelector('meta[name="_csrf"]');
+  const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+
+  console.log('CSRF meta tag found:', csrfMeta);
+  console.log('CSRF header meta found:', headerMeta);
+
+  if (!csrfMeta || !headerMeta) {
+    console.error('CSRF meta tags missing from <head>!');
+    showToast('❌ CSRF token missing — add meta tags to <head>', true);
+    return;
+  }
+
+  const csrfToken = csrfMeta.content;
+  const csrfHeader = headerMeta.content;
+  console.log('csrfToken:', csrfToken);
+  console.log('csrfHeader:', csrfHeader);
+
+  if (!songId || songId === 'null' || songId === 'undefined') {
+    console.error('Invalid songId!');
+    showToast('⚠️ Add this song to your library first via Songs page', true);
+    return;
+  }
+
+  if (!playlistId) {
+    console.error('No playlistId — modal not open?');
+    showToast('❌ No playlist selected', true);
+    return;
+  }
+
+  try {
+    const body = `playlistId=${playlistId}&songId=${songId}`;
+    console.log('Sending body:', body);
+
+    const res = await fetch('/playlists/addSong', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        [csrfHeader]: csrfToken
+      },
+      body,
+      credentials: 'same-origin'
+    });
+
+    console.log('Response status:', res.status);
+    console.log('Response url:', res.url);
+    console.log('Response ok:', res.ok);
+
+    if (res.ok || res.status === 302) {
+      showToast('✅ Song added successfully!');
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      showToast('❌ Failed: ' + res.status, true);
+    }
+  } catch (e) {
+    console.error('Fetch failed:', e);
+    showToast('❌ Error: ' + e.message, true);
+  }
+}
+
+function addSongFromSelect() {
+  const songId = document.getElementById('modal-song-select')?.value;
+  if (!songId) return;
+  addRecommendedSong(songId, currentPlaylistId);
+}
+
+function toggleVisibility(playlistId, btn) {
+  fetch('/api/playlists/' + playlistId + '/toggle-visibility', {method: 'POST'})
+    .then(r => r.json())
+    .then(data => {
+      btn.dataset.public = data.isPublic;
+      const span = btn.querySelector('span');
+      if (span) span.textContent = data.isPublic ? '🌍 Public' : '🔒 Private';
+      showToast(data.isPublic ? 'Плейлист теперь публичный' : 'Плейлист теперь приватный');
+    });
+}
+
+function sharePlaylist(token, isPublic) {
+  if (!isPublic) {
+    showToast('Сделайте плейлист публичным для шаринга', true);
+    return;
+  }
+  const url = window.location.origin + '/api/playlists/share/' + token;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('Ссылка скопирована! 🔗');
+  });
+}
+
+function savePlName(playlistId, name) {
+  if (!name || !name.trim()) return;
+  fetch('/api/playlists/' + playlistId + '/update', {
+    method: 'POST',
+    body: new URLSearchParams({name: name.trim()})
+  });
+}
+
+function savePlDesc(playlistId, desc) {
+  fetch('/api/playlists/' + playlistId + '/update', {
+    method: 'POST',
+    body: new URLSearchParams({description: desc || ''})
+  });
+}
+
+function uploadCover(playlistId) {
+  const input = document.getElementById('cover-input-' + playlistId);
+  if (input) input.click();
+}
+
+function uploadCoverFile(playlistId, input) {
+  if (!input.files || !input.files[0]) return;
+  const formData = new FormData();
+  formData.append('coverFile', input.files[0]);
+
+  fetch('/api/playlists/' + playlistId + '/cover', {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.coverImage) {
+      location.reload();
+    }
+  });
+}
+
+function autoFillGenre(playlistId) {
+  const genre = prompt('Введите жанр (например: Pop, Rock, Hip-Hop):');
+  if (!genre) return;
+
+  fetch('/api/playlists/' + playlistId + '/auto-fill-genre?genre=' + encodeURIComponent(genre), {
+    method: 'POST'
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      showToast('Добавлено ' + data.added + ' треков жанра ' + genre);
+      setTimeout(() => location.reload(), 1500);
+    }
+  });
+}
+
+async function autoByGenre(buttonEl) {
+  const csrfToken  = document.querySelector('meta[name="_csrf"]')?.content;
+  const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+  const currentSongs = Array.isArray(modalSongs) ? modalSongs : [];
+
+  const genreCount = {};
+  currentSongs.forEach(s => {
+    const g = s && s.genre ? s.genre : 'Unknown';
+    genreCount[g] = (genreCount[g] || 0) + 1;
+  });
+
+  const topGenre = Object.entries(genreCount)
+    .sort((a, b) => b[1] - a[1])[0]?.[0];
+
+  if (!topGenre || topGenre === 'Unknown') {
+    showToast('No genre detected in playlist', true);
+    return;
+  }
+
+  const select = document.getElementById('modal-song-select');
+  if (!select) {
+    showToast('No songs source found', true);
+    return;
+  }
+
+  const options = Array.from(select.options).filter(o => o.value);
+  const currentIds = new Set(currentSongs.map(s => String(s.id)));
+
+  const matches = options.filter(o => {
+    const inPlaylist = currentIds.has(String(o.value));
+    const genreMatch = (o.textContent || '').toLowerCase().includes(String(topGenre).toLowerCase());
+    return !inPlaylist && genreMatch;
+  });
+
+  if (buttonEl) buttonEl.textContent = '⏳ Finding...';
+
+  let added = 0;
+  for (const opt of matches.slice(0, 5)) {
+    try {
+      const body = `playlistId=${encodeURIComponent(currentPlaylistId)}&songId=${encodeURIComponent(opt.value)}`;
+      const res = await fetch('/playlists/addSong', {
+        method: 'POST',
+        headers: {
+          'Content-Type':'application/x-www-form-urlencoded',
+          [csrfHeader]: csrfToken
+        },
+        body
+      });
+      if (res.ok) added += 1;
+    } catch (_) {
+      // continue to next option
+    }
+  }
+
+  if (buttonEl) buttonEl.textContent = '✅ Done!';
+  showToast(`✅ Added ${added} songs by genre: ${topGenre}`);
+  setTimeout(() => location.reload(), 1000);
+}
+
+function showRecommendationsLegacy(playlistId) {
+  const panel = document.getElementById('recs-' + playlistId);
+  const content = document.getElementById('recs-content-' + playlistId);
+  if (!panel || !content) return;
+
+  if (panel.style.display !== 'none') {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  content.innerHTML = '<div style="color:rgba(248,244,255,.4);font-size:13px;">⏳ Загружаем...</div>';
+
+  fetch('/api/playlists/' + playlistId + '/recommendations')
+    .then(r => r.json())
+    .then(tracks => {
+      if (!tracks.length) {
+        content.innerHTML = '<div style="color:rgba(248,244,255,.4);font-size:13px;">Нет рекомендаций</div>';
+        return;
+      }
+      content.innerHTML = tracks.map(t => `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px;
+                    border-radius:8px;margin-bottom:4px;background:rgba(255,255,255,.04);">
+          <img src="${t.image || ''}" onerror="this.style.display='none'"
+               style="width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;" alt="">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;
+                        overflow:hidden;text-overflow:ellipsis;">${esc(t.title)}</div>
+            <div style="font-size:11px;color:rgba(248,244,255,.45);">${esc(t.artist)}</div>
+          </div>
+          ${t.preview ? `<button onclick="playPreview('${t.preview}','${esc(t.title)}','${esc(t.artist)}')"
+            style="background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;
+                   border-radius:6px;color:white;width:28px;height:28px;cursor:pointer;">▶</button>` : ''}
+        </div>
+      `).join('');
+    });
+}
+
+function playPreviewLegacy(url, title, artist) {
+  if (!url) return;
+  if (!previewAudio) previewAudio = new Audio();
+  previewAudio.pause();
+  previewAudio.src = url;
+  previewAudio.play();
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function profileEsc(v){
+  return (v || '').toString()
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function closeProfileModal() {
+  document.getElementById('profile-overlay').style.display = 'none';
+  document.getElementById('profile-modal').style.display = 'none';
+}
+
+function previewProfileAvatar(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const holder = document.getElementById('pm-avatar');
+    if (holder) {
+      holder.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function openProfileModal() {
+  try {
+    const [profileRes, artistsRes, songsRes] = await Promise.all([
+      fetch('/profile/data'),
+      fetch('/profile/artists'),
+      fetch('/profile/recent-songs')
+    ]);
+
+    const profile = await profileRes.json();
+    const artists = await artistsRes.json();
+    const recentSongs = await songsRes.json();
+    if (!profileRes.ok || profile.error) {
+      throw new Error(profile.error || 'Не удалось загрузить профиль');
+    }
+
+    const songsHtml = Array.isArray(recentSongs) && recentSongs.length > 0
+      ? recentSongs.map(s => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;
+            background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:6px;">
+            <div style="width:32px;height:32px;border-radius:8px;
+              background:linear-gradient(135deg,#7c3aed,#ec4899);
+              display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🎵</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:600;white-space:nowrap;
+                overflow:hidden;text-overflow:ellipsis;">${profileEsc(s.title || '')}</div>
+              <div style="font-size:11px;color:rgba(248,244,255,.45);">${profileEsc(s.artist || '—')} · ${profileEsc(s.duration || '0:00')}</div>
+            </div>
+          </div>`)
+        .join('')
+      : '<div style="font-size:13px;color:rgba(248,244,255,.35);padding:8px 0;">No songs added yet</div>';
+
+    const genres = ['Pop','Rock','Hip-Hop','R&B','Jazz','Electronic'];
+    const selectedGenre = profile.favoriteGenre || '';
+    const selectedArtist = profile.favoriteArtist || '';
+    const initial = (profile.displayName || profile.fullName || profile.username || 'U').charAt(0).toUpperCase();
+    const avatarHtml = profile.avatarBase64
+      ? `<img src="data:image/*;base64,${profile.avatarBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : initial;
+
+    const genreOptions = genres.map(g =>
+      `<option value="${g}" ${g === selectedGenre ? 'selected' : ''}>${g}</option>`
+    ).join('');
+
+    const artistOptions = (artists || []).map(a => {
+      const name = a.name || '';
+      return `<option value="${profileEsc(name)}" ${name === selectedArtist ? 'selected' : ''}>${profileEsc(name)}</option>`;
+    }).join('');
+
+    const modal = document.getElementById('profile-modal');
+    modal.innerHTML = `
+      <button type="button" onclick="closeProfileModal()" style="position:absolute;right:16px;top:12px;background:transparent;border:none;color:#f8f4ff;font-size:24px;cursor:pointer;line-height:1">&times;</button>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:8px;">User Profile</div>
+      <form id="profile-form" style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px;">
+          <div id="pm-avatar" style="background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:50%;width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;overflow:hidden;">${avatarHtml}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${profileEsc(profile.username || '')}</div>
+            <div style="color:rgba(248,244,255,.45);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${profileEsc(profile.email || '')}</div>
+            <label style="margin-top:8px;display:inline-block;padding:8px 12px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.35);border-radius:10px;cursor:pointer;font-size:12px;">Upload avatar
+              <input id="p-avatar" type="file" name="avatarFile" accept="image/*" style="display:none" onchange="previewProfileAvatar(this)">
+            </label>
+          </div>
+        </div>
+
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);">Username</div>
+        <input id="p-displayName" name="displayName" value="${profileEsc(profile.username || '')}" placeholder="Username"
+               style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:8px;">🎵 Recent Music</div>
+        <div>${songsHtml}</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:6px;">Favorite Genre</div>
+            <select id="p-genre" name="favoriteGenre" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none;">
+              <option value="">Select</option>
+              ${genreOptions}
+            </select>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:6px;">Favorite Artist</div>
+            <select id="p-artist" name="favoriteArtist" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none;">
+              <option value="">Select</option>
+              ${artistOptions}
+            </select>
+          </div>
+        </div>
+
+        <details style="margin-top:4px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;">
+          <summary style="cursor:pointer;font-size:12px;font-weight:700;color:#c084fc;">Change Password</summary>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+            <input id="p-oldPassword" type="password" name="oldPassword" placeholder="Old password" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+            <input id="p-newPassword" type="password" name="newPassword" placeholder="New password" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+            <input id="p-confirmPassword" type="password" name="confirmPassword" placeholder="Confirm password" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+          </div>
+        </details>
+
+        <div id="profile-error" style="display:none;color:#f87171;font-size:13px;"></div>
+
+        <button type="submit" style="margin-top:6px;background:linear-gradient(135deg,#7c3aed,#ec4899);border:none;border-radius:12px;padding:11px 16px;color:#fff;font-weight:700;cursor:pointer;">Save</button>
+      </form>
+    `;
+
+    document.getElementById('profile-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveProfile();
+    });
+    document.getElementById('profile-overlay').style.display = 'block';
+    modal.style.display = 'block';
+  } catch (err) {
+    showToast(err.message || 'Ошибка профиля', true);
+  }
+}
+
+async function saveProfile() {
+  const formData = new FormData();
+
+  formData.append('newUsername', document.getElementById('p-displayName')?.value || '');
+  formData.append('favoriteGenre', document.getElementById('p-genre')?.value || '');
+  formData.append('favoriteArtist', document.getElementById('p-artist')?.value || '');
+
+  const oldPass = document.getElementById('p-oldPassword')?.value || '';
+  const newPass = document.getElementById('p-newPassword')?.value || '';
+  const confirmPass = document.getElementById('p-confirmPassword')?.value || '';
+
+  if (newPass) {
+    formData.append('oldPassword', oldPass);
+    formData.append('newPassword', newPass);
+    formData.append('confirmPassword', confirmPass);
+  }
+
+  const avatarFile = document.getElementById('p-avatar')?.files[0];
+  if (avatarFile) {
+    formData.append('avatarFile', avatarFile);
+  }
+
+  try {
+    const res = await fetch('/profile/update', {
+      method: 'POST',
+      body: formData
+    });
+
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Not JSON response:', text);
+      showToast('Ошибка сервера', true);
+      return;
+    }
+
+    const data = await res.json();
+
+    if (data.success) {
+      // Update sidebar immediately
+      updateSidebarAvatar(data.avatarBase64, data.username);
+
+      // Update username in sidebar
+      const nameEl = document.querySelector('.user-name');
+      if (nameEl && data.username) nameEl.textContent = data.username;
+
+      showToast('Профиль сохранён ✓');
+      closeProfileModal();
+    } else {
+      showToast('Ошибка: ' + data.error, true);
+    }
+  } catch (e) {
+    console.error(e);
+    showToast('Ошибка соединения', true);
+  }
+}
+
+function updateSidebarProfile(data) {
+  const card = document.querySelector('.user-card');
+  if (!card) return;
+  const nameEl = card.querySelector('.user-name');
+  const roleEl = card.querySelector('.user-role');
+
+  const username = data.username || '';
+  const name = data.username || 'User';
+  const email = data.email || 'Music Fan';
+
+  updateSidebarAvatar(data.avatarBase64, username);
+  if (nameEl) nameEl.textContent = name;
+  if (roleEl) roleEl.textContent = email;
+}
+
+// Load avatar on page start
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch('/profile/data');
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) return;
+    const data = await res.json();
+    updateSidebarAvatar(data.avatarBase64, data.username);
+  } catch(e) {
+    console.log('Avatar load error:', e);
+  }
+});
+
+function updateSidebarAvatar(avatarBase64, username) {
+  const avatarEl = document.querySelector('.user-avatar');
+  if (!avatarEl) return;
+
+  if (avatarBase64 && avatarBase64.length > 0) {
+    avatarEl.innerHTML = `
+      <img src="${avatarBase64}"
+        style="width:100%;height:100%;border-radius:10px;
+               object-fit:cover;display:block;">`;
+    avatarEl.style.padding = '0';
+    avatarEl.style.overflow = 'hidden';
+  } else {
+    avatarEl.innerHTML = username
+      ? username.charAt(0).toUpperCase()
+      : 'U';
+  }
+}
+
+function showToast(message, isError = false) {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.cssText = `
+    position:fixed;bottom:90px;right:24px;z-index:99999;
+    padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;
+    font-family:'Space Grotesk',sans-serif;
+    background:${isError ? 'rgba(239,68,68,.9)' : 'rgba(45,212,191,.9)'};
+    color:white;box-shadow:0 8px 24px rgba(0,0,0,.4);
+    animation:fadeInOut 2.5s ease forwards;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
 </script>
 </body>
 </html>

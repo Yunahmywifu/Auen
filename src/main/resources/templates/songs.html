@@ -34,7 +34,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .nav-item.active{background:linear-gradient(135deg,rgba(168,85,247,.25),rgba(124,58,237,.15));color:var(--accent);border-color:rgba(168,85,247,.25);}
 .nav-item svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;flex-shrink:0;}
 .sidebar-bottom{margin-top:auto;padding:20px 16px 0;border-top:1px solid var(--border);}
-.user-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--border);}
+.user-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--border);cursor:pointer;}
 .user-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;}
 .user-info{flex:1;min-width:0;}
 .user-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -53,6 +53,12 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .hero-title .line3{display:block;-webkit-text-stroke:2px var(--accent);color:transparent;}
 .sparkle{display:inline-block;color:var(--accent);margin-left:8px;animation:sparkle-spin 3s ease-in-out infinite;}
 @keyframes sparkle-spin{0%,100%{transform:scale(1) rotate(0deg);}50%{transform:scale(1.2) rotate(20deg);}}
+@keyframes fadeInOut {
+  0%{opacity:0;transform:translateY(10px);}
+  15%{opacity:1;transform:translateY(0);}
+  85%{opacity:1;}
+  100%{opacity:0;}
+}
 .tracks-table-head{display:grid;grid-template-columns:40px 1fr 180px 160px 80px 60px 40px;gap:12px;padding:8px 16px;border-bottom:1px solid var(--border);margin-bottom:6px;}
 .th{font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:2px;text-transform:uppercase;}
 .th.center{text-align:center;}.th.right{text-align:right;}
@@ -176,11 +182,11 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
       </a>
     </div>
     <div class="sidebar-bottom">
-      <div class="user-card">
+      <div class="user-card" onclick="openProfileModal()" style="cursor:pointer">
         <div class="user-avatar" th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</div>
         <div class="user-info">
           <div class="user-name" sec:authentication="name">User</div>
-          <div class="user-role">Music Fan</div>
+          <div class="user-role" th:text="${currentUser != null and currentUser.email != null ? currentUser.email : 'Music Fan'}">Music Fan</div>
         </div>
       </div>
       <form th:action="@{/logout}" method="post" style="margin-top:8px">
@@ -240,8 +246,38 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
           </select>
           <select class="qa-select" name="genre">
             <option value="">Genre...</option>
-            <option>Pop</option><option>Rock</option><option>Hip-Hop</option>
-            <option>R&amp;B</option><option>Jazz</option><option>Electronic</option>
+            <option>Pop</option>
+            <option>Rock</option>
+            <option>Hip-Hop</option>
+            <option>R&amp;B</option>
+            <option>Electronic</option>
+            <option>Jazz</option>
+            <option>K-Pop</option>
+            <option>J-Pop</option>
+            <option>Indie</option>
+            <option>Alternative</option>
+            <option>Metal</option>
+            <option>Punk</option>
+            <option>Classical</option>
+            <option>Blues</option>
+            <option>Soul</option>
+            <option>Funk</option>
+            <option>Reggae</option>
+            <option>Latin</option>
+            <option>Country</option>
+            <option>Folk</option>
+            <option>Dance</option>
+            <option>House</option>
+            <option>Techno</option>
+            <option>Trap</option>
+            <option>Drill</option>
+            <option>Afrobeats</option>
+            <option>Ambient</option>
+            <option>Lo-Fi</option>
+            <option>Gospel</option>
+            <option>Opera</option>
+            <option>Soundtrack</option>
+            <option>Other</option>
           </select>
           <input class="qa-input" type="number" name="duration" placeholder="Duration (sec)" min="1" style="max-width:160px">
           <button class="qa-btn" type="submit">Upload Track →</button>
@@ -479,6 +515,7 @@ function renderResults(tracks) {
     const safeArtist = (track.artist || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const safeAlbum  = (track.album  || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const safeGenre  = (track.genre  || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const safeArtistId = (track.artistId || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const safePreview= (track.preview|| '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 
     row.innerHTML = `
@@ -501,7 +538,7 @@ function renderResults(tracks) {
         ${hasPreview ? '▶' : '🔇'}
       </button>
       <button
-        onclick="fillForm('${safeTitle}','${safeArtist}','${safeAlbum}','${safeGenre}',${track.duration})"
+        onclick="fillForm('${safeTitle}','${safeArtist}','${safeAlbum}','${safeGenre}',${track.duration},'${safeArtistId}')"
         style="background:linear-gradient(135deg,#065f46,#10b981);border:none;border-radius:8px;
           color:white;padding:0 14px;height:36px;font-size:12px;font-weight:700;
           cursor:pointer;flex-shrink:0;white-space:nowrap;font-family:'Space Grotesk',sans-serif;
@@ -514,35 +551,131 @@ function renderResults(tracks) {
   });
 }
 
-function fillForm(title, artist, album, genre, duration) {
-  const t  = document.querySelector('input[name="title"]');
-  const al = document.querySelector('input[name="album"]');
-  const g  = document.querySelector('select[name="genre"]');
-  const d  = document.querySelector('input[name="duration"]');
+function fillForm(title, artist, album, genre, duration, artistSpotifyId) {
+  const titleInput   = document.querySelector('input[name="title"]');
+  const albumInput   = document.querySelector('input[name="album"]');
+  const genreSelect  = document.querySelector('select[name="genre"]');
+  const durInput     = document.querySelector('input[name="duration"]');
+  const artistSelect = document.querySelector('select[name="artistId"]');
 
-  if (t)  t.value = title;
-  if (al) al.value = album;
-  if (d)  d.value = duration;
-  if (g && genre) {
+  if (titleInput) titleInput.value = title;
+  if (albumInput) albumInput.value = album;
+  if (durInput) durInput.value = duration;
+
+  const genreMap = {
+    'Pop':        ['pop', 'dance pop', 'electropop', 'synth-pop', 'teen pop', 'pop dance'],
+    'K-Pop':      ['k-pop', 'korean pop', 'k pop'],
+    'J-Pop':      ['j-pop', 'japanese pop', 'j pop'],
+    'Rock':       ['rock', 'classic rock', 'hard rock', 'soft rock', 'progressive rock'],
+    'Alternative':['alternative', 'alt rock', 'indie pop', 'alternative rock'],
+    'Indie':      ['indie', 'indie folk', 'indie rock', 'indie pop'],
+    'Metal':      ['metal', 'heavy metal', 'death metal', 'black metal', 'metalcore'],
+    'Punk':       ['punk', 'punk rock', 'pop punk', 'hardcore punk'],
+    'Hip-Hop':    ['hip hop', 'hip-hop', 'rap', 'gangsta rap', 'conscious hip hop'],
+    'Trap':       ['trap', 'trap music', 'mumble rap'],
+    'Drill':      ['drill', 'uk drill', 'chicago drill'],
+    'R&B':        ['r&b', 'rnb', 'rhythm and blues', 'contemporary r&b'],
+    'Soul':       ['soul', 'neo soul', 'motown', 'classic soul'],
+    'Funk':       ['funk', 'p-funk', 'funk rock'],
+    'Electronic': ['electronic', 'edm', 'electro', 'synthwave', 'chillwave'],
+    'House':      ['house', 'deep house', 'tech house', 'future house', 'progressive house'],
+    'Techno':     ['techno', 'detroit techno', 'minimal techno'],
+    'Dance':      ['dance', 'eurodance', 'disco', 'nu-disco'],
+    'Ambient':    ['ambient', 'drone', 'new age', 'atmospheric'],
+    'Lo-Fi':      ['lo-fi', 'lofi', 'lo fi', 'chillhop'],
+    'Jazz':       ['jazz', 'bebop', 'smooth jazz', 'jazz fusion', 'swing'],
+    'Blues':      ['blues', 'delta blues', 'electric blues', 'chicago blues'],
+    'Classical':  ['classical', 'baroque', 'orchestra', 'symphony', 'opera', 'chamber'],
+    'Opera':      ['opera', 'operatic'],
+    'Folk':       ['folk', 'folk rock', 'traditional folk', 'acoustic'],
+    'Country':    ['country', 'country pop', 'bluegrass', 'americana'],
+    'Latin':      ['latin', 'reggaeton', 'salsa', 'bachata', 'cumbia', 'bossa nova'],
+    'Reggae':     ['reggae', 'dancehall', 'ska', 'dub'],
+    'Afrobeats':  ['afrobeats', 'afropop', 'afrobeat', 'afro pop'],
+    'Gospel':     ['gospel', 'christian', 'worship', 'contemporary christian'],
+    'Soundtrack': ['soundtrack', 'score', 'film score', 'video game', 'anime'],
+    'Other':      [],
+  };
+
+  // Try to match genre from Spotify value to available options.
+  if (genreSelect && genre) {
     const gl = genre.toLowerCase();
-    for (let opt of g.options) {
-      if (opt.value.toLowerCase() === gl ||
-          gl.includes(opt.value.toLowerCase()) ||
-          opt.value.toLowerCase().includes(gl)) {
-        g.value = opt.value; break;
+    let mappedGenre = '';
+
+    for (const key in genreMap) {
+      const aliases = genreMap[key] || [];
+      if (aliases.some(alias => gl.includes(alias))) {
+        mappedGenre = key;
+        break;
+      }
+    }
+
+    if (!mappedGenre && genreMap[genre]) {
+      mappedGenre = genre;
+    }
+
+    for (let opt of genreSelect.options) {
+      const ov = opt.value.toLowerCase();
+      if (opt.value && (
+          (mappedGenre && opt.value === mappedGenre) ||
+          ov === gl ||
+          gl.includes(ov) ||
+          ov.includes(gl)
+      )) {
+        genreSelect.value = opt.value;
+        break;
       }
     }
   }
+
+  // Match artist in DB dropdown; if missing, send hidden artistName for backend create/find.
+  if (artistSelect && artist) {
+    let found = false;
+    for (let opt of artistSelect.options) {
+      const text = (opt.text || '').toLowerCase();
+      const al = artist.toLowerCase();
+      if (text && (text.includes(al) || al.includes(text))) {
+        artistSelect.value = opt.value;
+        found = true;
+        break;
+      }
+    }
+
+    let hiddenArtist = document.querySelector('input[name="artistName"]');
+    if (!hiddenArtist) {
+      hiddenArtist = document.createElement('input');
+      hiddenArtist.type = 'hidden';
+      hiddenArtist.name = 'artistName';
+      document.querySelector('.qa-form').appendChild(hiddenArtist);
+    }
+
+    if (!found) {
+      artistSelect.value = '';
+      hiddenArtist.value = artist;
+    } else {
+      hiddenArtist.value = '';
+    }
+  }
+
+  // Keep spotify artist id for backend enrichment during auto-create.
+  let hiddenSpotifyId = document.querySelector('input[name="artistSpotifyId"]');
+  if (!hiddenSpotifyId) {
+    hiddenSpotifyId = document.createElement('input');
+    hiddenSpotifyId.type = 'hidden';
+    hiddenSpotifyId.name = 'artistSpotifyId';
+    document.querySelector('.qa-form').appendChild(hiddenSpotifyId);
+  }
+  hiddenSpotifyId.value = artistSpotifyId || '';
 
   const form = document.querySelector('.quick-add');
   if (form) {
     form.scrollIntoView({behavior:'smooth', block:'center'});
     form.style.transition = 'border-color .3s, box-shadow .3s';
     form.style.borderColor = 'rgba(168,85,247,.6)';
-    form.style.boxShadow   = '0 0 32px rgba(168,85,247,.2)';
+    form.style.boxShadow = '0 0 32px rgba(168,85,247,.2)';
     setTimeout(() => {
       form.style.borderColor = '';
-      form.style.boxShadow   = '';
+      form.style.boxShadow = '';
     }, 2000);
   }
 }
@@ -550,6 +683,272 @@ function fillForm(title, artist, album, genre, duration) {
 function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ── PROFILE MODAL ── */
+function profileEsc(v){
+  return (v || '').toString()
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function closeProfileModal() {
+  document.getElementById('profile-overlay').style.display = 'none';
+  document.getElementById('profile-modal').style.display = 'none';
+}
+
+function previewProfileAvatar(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const holder = document.getElementById('pm-avatar');
+    if (holder) {
+      holder.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function openProfileModal() {
+  try {
+    const [profileRes, artistsRes, songsRes] = await Promise.all([
+      fetch('/profile/data'),
+      fetch('/profile/artists'),
+      fetch('/profile/recent-songs')
+    ]);
+
+    const profile = await profileRes.json();
+    const artists = await artistsRes.json();
+    const recentSongs = await songsRes.json();
+    if (!profileRes.ok || profile.error) {
+      throw new Error(profile.error || 'Не удалось загрузить профиль');
+    }
+
+    const songsHtml = Array.isArray(recentSongs) && recentSongs.length > 0
+      ? recentSongs.map(s => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;
+            background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:6px;">
+            <div style="width:32px;height:32px;border-radius:8px;
+              background:linear-gradient(135deg,#7c3aed,#ec4899);
+              display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🎵</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:600;white-space:nowrap;
+                overflow:hidden;text-overflow:ellipsis;">${profileEsc(s.title || '')}</div>
+              <div style="font-size:11px;color:rgba(248,244,255,.45);">${profileEsc(s.artist || '—')} · ${profileEsc(s.duration || '0:00')}</div>
+            </div>
+          </div>`)
+        .join('')
+      : '<div style="font-size:13px;color:rgba(248,244,255,.35);padding:8px 0;">No songs added yet</div>';
+
+    const genres = [
+      'Pop','K-Pop','J-Pop','Rock','Alternative','Indie','Metal','Punk',
+      'Hip-Hop','Trap','Drill','R&B','Soul','Funk',
+      'Electronic','House','Techno','Dance','Ambient','Lo-Fi',
+      'Jazz','Blues','Classical','Opera','Folk','Country',
+      'Latin','Reggae','Afrobeats','Gospel','Soundtrack','Other'
+    ];
+    const selectedGenre = profile.favoriteGenre || '';
+    const selectedArtist = profile.favoriteArtist || '';
+    const initial = (profile.displayName || profile.fullName || profile.username || 'U').charAt(0).toUpperCase();
+    const avatarHtml = profile.avatarBase64
+      ? `<img src="data:image/*;base64,${profile.avatarBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : initial;
+
+    const genreOptions = genres.map(g =>
+      `<option value="${g}" ${g === selectedGenre ? 'selected' : ''}>${g}</option>`
+    ).join('');
+
+    const artistOptions = (artists || []).map(a => {
+      const name = a.name || '';
+      return `<option value="${profileEsc(name)}" ${name === selectedArtist ? 'selected' : ''}>${profileEsc(name)}</option>`;
+    }).join('');
+
+    const modal = document.getElementById('profile-modal');
+    modal.innerHTML = `
+      <button type="button" onclick="closeProfileModal()" style="position:absolute;right:16px;top:12px;background:transparent;border:none;color:#f8f4ff;font-size:24px;cursor:pointer;line-height:1">&times;</button>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:8px;">User Profile</div>
+      <form id="profile-form" style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px;">
+          <div id="pm-avatar" style="background:linear-gradient(135deg,#7c3aed,#ec4899);border-radius:50%;width:72px;height:72px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;overflow:hidden;">${avatarHtml}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${profileEsc(profile.username || '')}</div>
+            <div style="color:rgba(248,244,255,.45);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${profileEsc(profile.email || '')}</div>
+            <label style="margin-top:8px;display:inline-block;padding:8px 12px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.35);border-radius:10px;cursor:pointer;font-size:12px;">Upload avatar
+              <input id="p-avatar" type="file" name="avatarFile" accept="image/*" style="display:none" onchange="previewProfileAvatar(this)">
+            </label>
+          </div>
+        </div>
+
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);">Username</div>
+        <input id="p-displayName" name="displayName" value="${profileEsc(profile.username || '')}" placeholder="Username"
+               style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:8px;">🎵 Recent Music</div>
+        <div>${songsHtml}</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:6px;">Favorite Genre</div>
+            <select id="p-genre" name="favoriteGenre" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none;">
+              <option value="">Select</option>
+              ${genreOptions}
+            </select>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(248,244,255,.45);margin-bottom:6px;">Favorite Artist</div>
+            <select id="p-artist" name="favoriteArtist" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none;">
+              <option value="">Select</option>
+              ${artistOptions}
+            </select>
+          </div>
+        </div>
+
+        <details style="margin-top:4px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;">
+          <summary style="cursor:pointer;font-size:12px;font-weight:700;color:#c084fc;">Change Password</summary>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+            <input id="p-oldPassword" type="password" name="oldPassword" placeholder="Old password" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+            <input id="p-newPassword" type="password" name="newPassword" placeholder="New password" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+            <input id="p-confirmPassword" type="password" name="confirmPassword" placeholder="Confirm password" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 16px;color:#f8f4ff;outline:none">
+          </div>
+        </details>
+
+        <div id="profile-error" style="display:none;color:#f87171;font-size:13px;"></div>
+
+        <button type="submit" style="margin-top:6px;background:linear-gradient(135deg,#7c3aed,#ec4899);border:none;border-radius:12px;padding:11px 16px;color:#fff;font-weight:700;cursor:pointer;">Save</button>
+      </form>
+    `;
+
+    document.getElementById('profile-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveProfile();
+    });
+    document.getElementById('profile-overlay').style.display = 'block';
+    modal.style.display = 'block';
+  } catch (err) {
+    showToast(err.message || 'Ошибка профиля', true);
+  }
+}
+
+async function saveProfile() {
+  const formData = new FormData();
+
+  formData.append('newUsername', document.getElementById('p-displayName')?.value || '');
+  formData.append('favoriteGenre', document.getElementById('p-genre')?.value || '');
+  formData.append('favoriteArtist', document.getElementById('p-artist')?.value || '');
+
+  const oldPass = document.getElementById('p-oldPassword')?.value || '';
+  const newPass = document.getElementById('p-newPassword')?.value || '';
+  const confirmPass = document.getElementById('p-confirmPassword')?.value || '';
+
+  if (newPass) {
+    formData.append('oldPassword', oldPass);
+    formData.append('newPassword', newPass);
+    formData.append('confirmPassword', confirmPass);
+  }
+
+  const avatarFile = document.getElementById('p-avatar')?.files[0];
+  if (avatarFile) {
+    formData.append('avatarFile', avatarFile);
+  }
+
+  try {
+    const res = await fetch('/profile/update', {
+      method: 'POST',
+      body: formData
+    });
+
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Not JSON response:', text);
+      showToast('Ошибка сервера', true);
+      return;
+    }
+
+    const data = await res.json();
+
+    if (data.success) {
+      // Update sidebar immediately
+      updateSidebarAvatar(data.avatarBase64, data.username);
+
+      // Update username in sidebar
+      const nameEl = document.querySelector('.user-name');
+      if (nameEl && data.username) nameEl.textContent = data.username;
+
+      showToast('Профиль сохранён ✓');
+      closeProfileModal();
+    } else {
+      showToast('Ошибка: ' + data.error, true);
+    }
+  } catch (e) {
+    console.error(e);
+    showToast('Ошибка соединения', true);
+  }
+}
+
+function updateSidebarProfile(data) {
+  const card = document.querySelector('.user-card');
+  if (!card) return;
+  const nameEl = card.querySelector('.user-name');
+  const roleEl = card.querySelector('.user-role');
+
+  const username = data.username || '';
+  const name = data.username || 'User';
+  const email = data.email || 'Music Fan';
+
+  updateSidebarAvatar(data.avatarBase64, username);
+  if (nameEl) nameEl.textContent = name;
+  if (roleEl) roleEl.textContent = email;
+}
+
+// Load avatar on page start
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch('/profile/data');
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) return;
+    const data = await res.json();
+    updateSidebarAvatar(data.avatarBase64, data.username);
+  } catch(e) {
+    console.log('Avatar load error:', e);
+  }
+});
+
+function updateSidebarAvatar(avatarBase64, username) {
+  const avatarEl = document.querySelector('.user-avatar');
+  if (!avatarEl) return;
+
+  if (avatarBase64 && avatarBase64.length > 0) {
+    avatarEl.innerHTML = `
+      <img src="${avatarBase64}"
+        style="width:100%;height:100%;border-radius:10px;
+               object-fit:cover;display:block;">`;
+    avatarEl.style.padding = '0';
+    avatarEl.style.overflow = 'hidden';
+  } else {
+    avatarEl.innerHTML = username
+      ? username.charAt(0).toUpperCase()
+      : 'U';
+  }
+}
+
+function showToast(message, isError = false) {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.cssText = `
+    position:fixed;bottom:90px;right:24px;z-index:99999;
+    padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;
+    font-family:'Space Grotesk',sans-serif;
+    background:${isError ? 'rgba(239,68,68,.9)' : 'rgba(45,212,191,.9)'};
+    color:white;box-shadow:0 8px 24px rgba(0,0,0,.4);
+    animation:fadeInOut 2.5s ease forwards;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
 }
 </script>
 </body>

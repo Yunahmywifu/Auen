@@ -3,6 +3,7 @@ package com.example.lab1.security;
 import com.example.lab1.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -49,6 +50,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/api/**")
@@ -56,11 +58,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                 .requestMatchers("/api/spotify/**").permitAll()
+                .requestMatchers("/api/playlists/share/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .httpBasic(httpBasic -> {})
+            .httpBasic(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
             .authenticationProvider(authenticationProvider());
 
@@ -68,10 +71,15 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(2)
     public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers(new AntPathRequestMatcher("/logout"))
+                .ignoringRequestMatchers(
+                    new AntPathRequestMatcher("/logout"),
+                    new AntPathRequestMatcher("/profile/**"),
+                    new AntPathRequestMatcher("/api/playlists/**")
+                )
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/register", "/auth/**", "/css/**", "/js/**", "/error").permitAll()

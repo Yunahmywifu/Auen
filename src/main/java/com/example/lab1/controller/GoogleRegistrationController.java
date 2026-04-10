@@ -26,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 @Controller
@@ -107,8 +108,9 @@ public class GoogleRegistrationController {
                 return "redirect:/login?error";
             }
 
-            if (userRepository.findByUsername(email).isPresent()) {
-                loginUser(email, request);
+            Optional<User> existingUser = userRepository.findByEmail(email);
+            if (existingUser.isPresent()) {
+                loginUser(existingUser.get().getUsername(), request);
                 return "redirect:/index";
             }
 
@@ -229,7 +231,7 @@ public class GoogleRegistrationController {
         User user = new User();
         user.setUsername(pending.getUsername());
         user.setPassword(pending.getEncodedPassword());
-        user.setRole("USER");
+        user.setRole("ROLE_USER");
         user.setEmail(pending.getEmail());
         userRepository.save(user);
 

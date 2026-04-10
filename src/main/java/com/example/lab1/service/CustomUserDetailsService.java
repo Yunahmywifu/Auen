@@ -28,6 +28,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         String role = user.getRole();
         String grantedRole = role != null && role.startsWith("ROLE_") ? role : "ROLE_" + role;
 
+        System.out.println("=== LOGIN: " + username + " | ROLE: " + role + " | GRANTED: " + grantedRole);
+
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
@@ -35,4 +37,3 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
     }
 }
-

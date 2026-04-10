@@ -3,37 +3,39 @@ package com.example.lab1.controller;
 import com.example.lab1.model.Artist;
 import com.example.lab1.model.Playlist;
 import com.example.lab1.model.Song;
-import com.example.lab1.model.User;
 import com.example.lab1.repository.ArtistRepository;
 import com.example.lab1.repository.PlaylistRepository;
 import com.example.lab1.repository.SongRepository;
 import com.example.lab1.repository.UserRepository;
 import com.example.lab1.service.SpotifyService;
+import com.example.lab1.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import se.michaelthelin.spotify.model_objects.specification.Track;
+
+import java.util.Arrays;
 
 @Controller
 public class AuthController {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
     private final ArtistRepository artistRepository;
     private final SongRepository songRepository;
     private final PlaylistRepository playlistRepository;
     private final SpotifyService spotifyService;
 
     public AuthController(UserRepository userRepository,
-                          PasswordEncoder passwordEncoder,
+                          UserService userService,
                           ArtistRepository artistRepository,
                           SongRepository songRepository,
                           PlaylistRepository playlistRepository,
                           SpotifyService spotifyService) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.userService = userService;
         this.artistRepository = artistRepository;
         this.songRepository = songRepository;
         this.playlistRepository = playlistRepository;
@@ -58,17 +60,13 @@ public class AuthController {
                                 @RequestParam String password,
                                 @RequestParam(required = false) String email,
                                 Model model) {
-        if (userRepository.existsByUsername(username)) {
-            model.addAttribute("error", "Пользователь с таким именем уже существует!");
+        try {
+            userService.register(username, password, email);
+            return "redirect:/login?registered";
+        } catch (RuntimeException ex) {
+            model.addAttribute("error", ex.getMessage());
             return "register";
         }
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setRole("USER");
-        if (email != null && !email.isBlank()) user.setEmail(email.trim());
-        userRepository.save(user);
-        return "redirect:/login?registered";
     }
 
     @GetMapping("/")
@@ -145,20 +143,124 @@ public class AuthController {
 
     @PostMapping("/songs")
     public String addSong(@RequestParam String title,
-                           @RequestParam String album,
-                           @RequestParam String genre,
-                           @RequestParam int duration,
-                           @RequestParam(required = false) Long artistId) {
+                           @RequestParam(required = false) String album,
+                           @RequestParam(required = false) String genre,
+                           @RequestParam(required = false) Integer duration,
+                           @RequestParam(required = false) Long artistId,
+                           @RequestParam(required = false) String artistName,
+                           @RequestParam(required = false) String artistSpotifyId) {
         Song song = new Song();
         song.setTitle(title);
-        song.setAlbum(album);
-        song.setGenre(genre);
-        song.setDuration(duration);
+        song.setAlbum(album != null ? album : "");
+        song.setGenre(genre != null ? genre : "");
+        song.setDuration(duration != null ? duration : 0);
+
         if (artistId != null) {
             artistRepository.findById(artistId).ifPresent(song::setArtist);
+        } else if (artistName != null && !artistName.isBlank()) {
+            String trimmedName = artistName.trim();
+
+            Artist artist = artistRepository.findAll()
+                    .stream()
+                    .filter(a -> a.getName() != null && a.getName().equalsIgnoreCase(trimmedName))
+                    .findFirst()
+                    .orElse(null);
+
+            if (artist == null) {
+                artist = new Artist();
+                artist.setName(trimmedName);
+                artist.setCountry("");
+                artist.setGenre(genre != null ? genre : "");
+                artist.setYearFounded(0);
+
+                // Try to enrich a new artist with Spotify data.
+                try {
+                    se.michaelthelin.spotify.model_objects.specification.Artist[] spotifyArtists =
+                            spotifyService.searchArtists(trimmedName);
+
+                    if (spotifyArtists != null && spotifyArtists.length > 0) {
+                        se.michaelthelin.spotify.model_objects.specification.Artist sp = spotifyArtists[0];
+
+                        if (artistSpotifyId != null && !artistSpotifyId.isBlank()) {
+                            se.michaelthelin.spotify.model_objects.specification.Artist matched = Arrays.stream(spotifyArtists)
+                                    .filter(a -> artistSpotifyId.equals(a.getId()))
+                                    .findFirst()
+                                    .orElse(null);
+                            if (matched != null) {
+                                sp = matched;
+                            }
+                        }
+
+                        if (sp.getGenres() != null && sp.getGenres().length > 0 && sp.getGenres()[0] != null && !sp.getGenres()[0].isBlank()) {
+                            String spGenre = sp.getGenres()[0].trim();
+                            String mappedGenre = mapSpotifyGenre(spGenre);
+                            artist.setGenre(!mappedGenre.isEmpty() ? mappedGenre : spGenre);
+                        }
+
+                        // Spotify Artist object has no direct country field.
+                        artist.setCountry("");
+
+                        // Try to infer first active year from top search track release date.
+                        try {
+                            Track[] tracks = spotifyService.searchTracks("artist:\"" + trimmedName + "\"");
+                            if (tracks != null && tracks.length > 0
+                                    && tracks[0].getAlbum() != null
+                                    && tracks[0].getAlbum().getReleaseDate() != null
+                                    && tracks[0].getAlbum().getReleaseDate().length() >= 4) {
+                                int year = Integer.parseInt(tracks[0].getAlbum().getReleaseDate().substring(0, 4));
+                                artist.setYearFounded(year);
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+                } catch (Exception e) {
+                    System.out.println("Spotify artist fetch failed: " + e.getMessage());
+                }
+
+                artist = artistRepository.save(artist);
+            }
+            song.setArtist(artist);
         }
+
         songRepository.save(song);
         return "redirect:/songs";
+    }
+
+    private String mapSpotifyGenre(String spotifyGenre) {
+        if (spotifyGenre == null) return "";
+        String gl = spotifyGenre.toLowerCase();
+        if (gl.contains("k-pop") || gl.contains("korean")) return "K-Pop";
+        if (gl.contains("j-pop") || gl.contains("japanese")) return "J-Pop";
+        if (gl.contains("pop")) return "Pop";
+        if (gl.contains("hip hop") || gl.contains("hip-hop") || gl.contains("rap")) return "Hip-Hop";
+        if (gl.contains("trap")) return "Trap";
+        if (gl.contains("drill")) return "Drill";
+        if (gl.contains("r&b") || gl.contains("rnb") || gl.contains("rhythm")) return "R&B";
+        if (gl.contains("soul")) return "Soul";
+        if (gl.contains("funk")) return "Funk";
+        if (gl.contains("house")) return "House";
+        if (gl.contains("techno")) return "Techno";
+        if (gl.contains("electronic") || gl.contains("edm") || gl.contains("electro")) return "Electronic";
+        if (gl.contains("dance") || gl.contains("disco")) return "Dance";
+        if (gl.contains("ambient")) return "Ambient";
+        if (gl.contains("lo-fi") || gl.contains("lofi")) return "Lo-Fi";
+        if (gl.contains("metal")) return "Metal";
+        if (gl.contains("punk")) return "Punk";
+        if (gl.contains("alternative") || gl.contains("alt rock")) return "Alternative";
+        if (gl.contains("indie")) return "Indie";
+        if (gl.contains("rock")) return "Rock";
+        if (gl.contains("jazz")) return "Jazz";
+        if (gl.contains("blues")) return "Blues";
+        if (gl.contains("classical") || gl.contains("orchestra")) return "Classical";
+        if (gl.contains("opera")) return "Opera";
+        if (gl.contains("folk") || gl.contains("acoustic")) return "Folk";
+        if (gl.contains("country") || gl.contains("bluegrass")) return "Country";
+        if (gl.contains("latin") || gl.contains("reggaeton") || gl.contains("salsa")) return "Latin";
+        if (gl.contains("reggae") || gl.contains("dancehall")) return "Reggae";
+        if (gl.contains("afro")) return "Afrobeats";
+        if (gl.contains("gospel") || gl.contains("christian")) return "Gospel";
+        if (gl.contains("soundtrack") || gl.contains("score")) return "Soundtrack";
+        return "";
     }
 
     @GetMapping("/songs/delete/{id}")
